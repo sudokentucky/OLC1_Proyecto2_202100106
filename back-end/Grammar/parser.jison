@@ -1,20 +1,33 @@
 %{
     //en dist se guarda el resultado de la compilación
     const Errors = require("../build/Analizador/Error/error").default;
+    //AST
     const {AST} = require("../build/Analizador/Tree/AST");
+    //Tipos de datos
     const {DataType} = require("../build/Analizador/expression/types");
+    //Básicos
     const {Basic} = require("../build/Analizador/expression/basic");
-    const {Arithmetic,ArithmeticOption} = require("../build/Analizador/expression/arithmetic");    
+    //Aritméticos
+    const {Arithmetic,ArithmeticOption} = require("../build/Analizador/expression/arithmetic");  
+    //Relacionales  
     const {Relational,RelationalOption} = require("../build/Analizador/expression/relational");
+    //Lógicos
     const {Logical,LogicalOption} = require("../build/Analizador/expression/logical");
+    //Ternario
     const {Ternary} = require("../build/Analizador/expression/ternary");
+    //Acceso a variables
     const {Access} = require("../build/Analizador/expression/access");
     const {Declaration} = require("../build/Analizador/abstract/declaration");
+    //Asignación
     const {Assignment} = require("../build/Analizador/Instructions/assignment");
+    //Casting
     const {Cast} = require("../build/Analizador/Instructions/cast");
+    //Incremento y decremento
     const {Increment} = require("../build/Analizador/Instructions/increment");
     const {Decrement} = require("../build/Analizador/Instructions/decrement");
+    //Impresiones
     const {Echo} = require("../build/Analizador/Instructions/echo");
+    //Arrays
     const {VectorAssignment} = require("../build/Analizador/Instructions/vectorassignment");
     const {MatrixAssignment} = require("../build/Analizador/Instructions/matrixassignment");
     const {VectorAccess} = require("../build/Analizador/expression/vectoraccess");
