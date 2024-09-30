@@ -34,7 +34,6 @@
     /*Sentencias de transferencia*/
     const {Return} = require("../build/Analizador/Instructions/return");
     const {Continue,Break} = require("../build/Analizador/Instructions/transfer");
-    const {Statement} = require("../build/Analizador/Instructions/statement");
 %}
 //Referencia a el lexer
 %lex 
@@ -290,7 +289,7 @@ logicos    : expresion AND expresion {$$ = new Logical($1,$3,LogicalOption.AND,@
 print 
     : ECHO expresion { 
         console.log("Print con CADENA:", $2);
-        $$ = new Print($2, @1.first_line, @1.first_column); 
+        $$ = new Echo($2, @1.first_line, @1.first_column); 
         console.log("Print:", $$);
     }
 ;
@@ -498,10 +497,3 @@ loop_statement // Sentencias cíclicas loop
         $$ = new Loop($3, @1.first_line, @1.first_column);
     }
 ;
-
-statement //Estados dentro de un bloque
-    //Bloque de instrucciones { instrucciones }
-    :LLAVE_IZQ instrucciones LLAVE_DER {$$= new Statement($2, @1.first_line, @1.first_column);}
-    //{}
-    |LLAVE_IZQ LLAVE_DER {$$= new Statement([], @1.first_line, @1.first_column)};
-    ;
