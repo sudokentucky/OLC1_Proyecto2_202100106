@@ -47,6 +47,10 @@
     /*Sentencias de transferencia*/
     const {Return} = require("../build/Analizador/Instructions/return");
     const {Continue,Break} = require("../build/Analizador/Instructions/transfer");
+    /*Funcion*/
+    const {Function} = require("../build/Analizador/Instructions/Function");
+    const {Statement} = require("../build/Analizador/Instructions/statement");
+    const {Call} = require("../build/Analizador/Instructions/call");
 %}
 //Referencia a el lexer
 %lex 
@@ -219,7 +223,7 @@ instruccion
                 | declaracion PUNTO_Y_COMA      {$$ = $1;}
                 | asignacion PUNTO_Y_COMA        {$$ = $1;}
                 | array PUNTO_Y_COMA             {$$ = $1;}
-                | update PUNTO Y COMA                        {$$ = $1;}
+                | update PUNTO Y COMA            {$$ = $1;}
                 | if_statement                  {$$ = $1;}
                 | case_statement                {$$ = $1;}
                 | break PUNTO_Y_COMA             {$$ = $1;}
@@ -229,6 +233,7 @@ instruccion
                 | for_statement                 {$$ = $1;}
                 | do_until_statement            {$$ = $1;}
                 | loop_statement                {$$ = $1;}
+                | declaracion_funcion           {$$ = $1;}
 
                 ;
                 
@@ -277,6 +282,7 @@ expresion
         console.log(`Acceso a matriz ${$1} en posición [${$3}][${$6}]`);
         $$ = new MatrixAccess($1, $3, $6, @1.first_line, @1.first_column);  // Acceso a matriz bidimensional
     }
+    | llamada_funcion { $$ = $1; }
 ;
 
 
@@ -510,3 +516,58 @@ loop_statement // Sentencias cíclicas loop
         $$ = new Loop($3, @1.first_line, @1.first_column);
     }
 ;
+
+statement
+    : LLAVE_IZQ instrucciones LLAVE_DER {
+        $$ = new Statement($2, @1.first_line, @1.first_column);
+    }
+    | LLAVE_IZQ LLAVE_DER {
+        $$ = new Statement([], @1.first_line, @1.first_column);
+    }
+    ;
+declaracion_funcion
+    : FUNCTION tipo_datos ID PARENTESIS_IZQ parametros PARENTESIS_DER statement {
+        $$ = new Function($3, $2, $7, $5, @1.first_line, @1.first_column);
+    }
+    | FUNCTION tipo_datos ID PARENTESIS_IZQ PARENTESIS_DER statement {
+        $$ = new Function($3, $2, $5, [], @1.first_line, @1.first_column);
+    }
+    ;
+
+
+parametros
+    : parametros COMA parametro { 
+        $1.push($3); 
+        $$ = $1; 
+    }
+    | parametro { 
+        $$ = [$1]; 
+    }
+    ;
+
+parametro
+    : ID DOS_PUNTOS tipo_datos IGUAL expresion {
+        $$ = { id: $1, tipo: $3, defaultValue: $5 };
+    }
+    | ID DOS_PUNTOS tipo_datos {
+        $$ = { id: $1, tipo: $3 };
+    }
+    ;
+llamada_funcion
+    : ID PARENTESIS_IZQ parametros_llamada PARENTESIS_DER {
+        $$ = new Call($1, $3, @1.first_line, @1.first_column);
+    }
+    | ID PARENTESIS_IZQ PARENTESIS_DER {
+        $$ = new Call($1, [], @1.first_line, @1.first_column);
+    }
+    ;
+
+parametros_llamada
+    : parametros_llamada COMA expresion {
+        $1.push($3);
+        $$ = $1;
+    }
+    | expresion {
+        $$ = [$1];
+    }
+    ;
