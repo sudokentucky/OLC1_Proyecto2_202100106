@@ -558,16 +558,27 @@ llamada_funcion
         $$ = new Call($1, $3, @1.first_line, @1.first_column);
     }
     | ID PARENTESIS_IZQ PARENTESIS_DER {
-        $$ = new Call($1, [], @1.first_line, @1.first_column);
+        $$ = new Call($1, [], @1.first_line, @1.first_column); // Llamada sin parámetros
     }
     ;
 
 parametros_llamada
-    : parametros_llamada COMA expresion {
+    : parametros_llamada COMA parametro_llamada {
         $1.push($3);
         $$ = $1;
     }
-    | expresion {
+    | parametro_llamada {
         $$ = [$1];
+    }
+    ;
+
+parametro_llamada
+    : ID ASIGNACION expresion {
+        // Sobrescribir el valor de un parámetro por su nombre
+        $$ = { id: $1, value: $3 };
+    }
+    | expresion {
+        // Parámetro sin sobreescritura (por posición)
+        $$ = $1;
     }
     ;
