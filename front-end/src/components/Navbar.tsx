@@ -44,6 +44,11 @@ const Navbar: React.FC<NavbarProps> = ({ onExecuteCommand, onResetCommand, onLoa
     navigate("/errores"); // Navegar a la nueva página de errores
   };
 
+  const handleViewAST = () => {
+    setIsReportsOpen(false);
+    navigate("/ast"); // Navegar a la vista de AST
+  };
+
   // Función para abrir un archivo .ci y cargar su contenido
   const handleOpenFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -157,42 +162,53 @@ const Navbar: React.FC<NavbarProps> = ({ onExecuteCommand, onResetCommand, onLoa
             )}
           </li>
 
-          {/* Reportes Dropdown */}
-          <li className="relative">
-            <button
-              onClick={() => {
-                setIsReportsOpen(!isReportsOpen);
-                setIsFileOpen(false);
-                setIsToolsOpen(false);
-              }}
-              className="hover:bg-buffy px-4 py-2 rounded-md focus:outline-none"
-            >
-              Reportes
-            </button>
-            {isReportsOpen && (
-              <ul className="absolute left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-10">
-                <li>
-                  <button
-                    onClick={handleViewSymbolTable}
-                    className="block w-full text-left px-4 py-2 hover:bg-dracula"
-                  >
-                    Ver reporte de tabla de símbolos
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={handleViewErrors}
-                    className="block w-full text-left px-4 py-2 hover:bg-dracula"
-                  >
-                    Ver errores
-                  </button>
-                </li>
-              </ul>
-            )}
-          </li>
+{/* Reportes Dropdown */}
+<li className="relative">
+  <button
+    onClick={() => {
+      setIsReportsOpen(!isReportsOpen);
+      setIsFileOpen(false);
+      setIsToolsOpen(false);
+    }}
+    className="hover:bg-buffy px-4 py-2 rounded-md focus:outline-none"
+  >
+    Reportes
+  </button>
+  {isReportsOpen && (
+    <ul className="absolute left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-10">
+      <li>
+        <button
+          onClick={handleViewSymbolTable}
+          className="block w-full text-left px-4 py-2  hover:bg-dracula"
+        >
+          Ver Tabla de símbolos
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={handleViewErrors}
+          className="block w-full text-left px-4 py-2 hover:bg-dracula"
+        >
+          Ver errores
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={handleViewAST}
+          className="block w-full text-left px-4 py-2 hover:bg-dracula"
+        >
+          Ver AST
+        </button>
+      </li>
+    </ul>
+  )}
+</li>
+
         </ul>
+        
       </div>
     </nav>
+    
   );
 };
 
