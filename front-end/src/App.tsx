@@ -4,7 +4,7 @@ import SymbolTable from "./components/SymbolTable"; // Importa el nuevo componen
 import ErrorTable from "./components/ErrorTable"; // Importa el componente para los errores
 import useCommandExecution from "./hooks/useCommandExecution"; // Hook que gestiona la ejecución de comandos
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Importa Router
-import { useState } from "react"; // Importa useState para gestionar la carga de archivos
+import DotGraph from "./components/AST"; // Importa el componente para el gráfico AST
 
 function App() {
   // Centralizamos el hook para gestionar la ejecución y reset
@@ -19,8 +19,6 @@ function App() {
     messageType
   } = useCommandExecution();
 
-  // Estado para gestionar la carga de archivos
-  const [fileContent, setFileContent] = useState<string>("");
 
   // Función para cargar el archivo en el área de texto
   const handleLoadFile = (content: string) => {
@@ -59,6 +57,7 @@ function App() {
 
           {/* Ruta para ver los errores */}
           <Route path="/errores" element={<ErrorTable />} />
+          <Route path="/ast" element={<DotGraph />} />
         </Routes>
       </div>
     </Router>
