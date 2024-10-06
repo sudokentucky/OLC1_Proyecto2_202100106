@@ -38,7 +38,7 @@ app.post('/interpretar', (req: Request, res: Response) => {
             ast = grammar.parse(codigoFuente); // Parseamos el código fuente con la gramática
             currentAST = ast; // Almacenar el AST actual
         } catch (parseError: any) {
-            console.error("Error de sintaxis:", parseError);
+            console.error(parseError);
 
             // Extraer información del error que genera el parser
             if (parseError.hash) {
@@ -56,7 +56,6 @@ app.post('/interpretar', (req: Request, res: Response) => {
             }
             
             return res.status(400).json({ 
-                mensaje: "Error de sintaxis en el código proporcionado.",
                 errores: Errors.getErrors() // Retornamos los errores en formato JSON
             });
         }
@@ -111,6 +110,27 @@ app.get('/errores', (_req: Request, res: Response) => {
     }
 }
 );
+
+// Ruta para obtener el código DOT del AST actual
+app.get('/generateDot', (_req: Request, res: Response) => {
+    try {
+        if (!currentAST) {
+            return res.status(500).json({ mensaje: "No se ha interpretado ningún código." });
+        }
+
+        // Llamar al método generateDot para generar el código DOT del AST
+        const dotCode = currentAST.generateDot();
+
+        // Retornar el código DOT en formato texto plano
+        res.setHeader('Content-Type', 'text/plain');  // Asegura que se envía como texto plano
+        return res.send(dotCode); // Enviar el código DOT directamente
+
+    } catch (error) {
+        console.error("Error al generar el código DOT del AST:", error);
+        return res.status(500).json({ mensaje: "Error interno del servidor al generar el código DOT del AST." });
+    }
+});
+
 
 // Iniciamos el servidor en el puerto 3000
 app.listen(port, () => {
