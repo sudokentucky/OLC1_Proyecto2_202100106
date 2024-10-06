@@ -1,50 +1,49 @@
-// Importa las clases necesarias para manejar el entorno y las instrucciones
-import { Environment } from "../Environment/environment"; // Entorno donde se ejecutan las instrucciones
-import { Instruction } from "../abstract/instruction"; // Clase base para todas las instrucciones
+import { Environment } from "../Environment/environment"; 
+import { Instruction } from "../abstract/instruction";
+import { DotGenerator } from './DotGenerator'; // Importa tu DotGenerator
 
-// Define una variable global que simula una consola donde se almacenan los mensajes generados durante la ejecución
 let consola: string[] = [];
-/**
- * Clase que define un AST (Árbol de Sintaxis Abstracta).
- * El AST es una representación de la estructura sintáctica de un programa, donde las instrucciones están organizadas jerárquicamente.
- */
+
 export class AST {
-    private globalEnv: Environment | null = null; // Almacena el entorno global
+    private globalEnv: Environment | null = null; 
+    private dotGenerator: DotGenerator; // Instancia de DotGenerator
 
-    /**
-     * Constructor de la clase AST.
-     * 
-     * @param instructions - Un arreglo de instrucciones que representa el programa a ser interpretado.
-     */
-    constructor(private instructions: Instruction[]) {}
+    constructor(private instructions: Instruction[]) {
+        this.dotGenerator = new DotGenerator(); // Inicializa el DotGenerator
+    }
 
-    /**
-     * Método que interpreta el AST.
-     * Recorre cada una de las instrucciones almacenadas en el AST y las ejecuta dentro de un entorno global.
-     * Si se produce algún error durante la ejecución de una instrucción, se captura y se muestra en la consola.
-     * 
-     * @returns string - Retorna el contenido actual de la consola (los mensajes generados durante la ejecución).
-     */
-    interpreter(): string[] {  // Cambiamos el tipo de retorno a un array de strings
-        this.globalEnv = new Environment(null); // Crea un entorno global sin entorno padre
-        consola = []; // Limpia la consola en cada interpretación
+    interpreter(): string[] {
+        this.globalEnv = new Environment(null); 
+        consola = []; // Limpia la consola
 
         for (const instruction of this.instructions) {
             try {
-                instruction.execute(this.globalEnv); // Ejecuta cada instrucción en el entorno global
+                instruction.execute(this.globalEnv); 
             } catch (error) {
-                console.error(error); // Captura y muestra errores
+                console.error(error); 
             }
         }
 
-        return consola;  // Retorna todos los mensajes de la consola
+        return consola; 
     }
 
-    /**
-     * Método para obtener el entorno global después de la ejecución del AST.
-     * 
-     * @returns Environment | null - El entorno global o null si aún no ha sido inicializado.
-     */
+    // Método para generar el código DOT usando DotGenerator
+    public generateDot(): string {
+        // Reinicia el estado del generador de nodos
+        this.dotGenerator.reset();
+        // Nodo raíz "INSTRUCCIONES"
+        const rootNode = this.dotGenerator.addNode("INSTRUCCIONES");
+
+        // Recorremos todas las instrucciones y generamos sus nodos
+        for (const instruction of this.instructions) {
+            const instructionNode = instruction.generateNode(this.dotGenerator);  // Pasa el DotGenerator a las instrucciones
+            this.dotGenerator.addEdge(rootNode, instructionNode); // Conectamos el nodo raíz con las instrucciones
+        }
+
+        return this.dotGenerator.generateDot(); // Genera y retorna el DOT final
+    }
+
+    // Método para obtener el entorno global después de la ejecución del AST.
     getGlobalEnvironment(): Environment | null {
         return this.globalEnv;
     }
@@ -53,9 +52,7 @@ export class AST {
 /**
  * Función que agrega un mensaje a la consola.
  * Esta función se utiliza para simular la salida de la consola donde se registran los mensajes generados durante la ejecución del programa.
- * 
- * @param value - El valor que se desea agregar a la consola.
  */
 export function setConsole(value: any) {
-    consola.push(value);  // Agrega el mensaje al array en lugar de sobrescribirlo
+    consola.push(value); 
 }
