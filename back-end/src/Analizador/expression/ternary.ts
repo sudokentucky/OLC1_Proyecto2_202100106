@@ -2,7 +2,7 @@ import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
 import { Result, DataType } from "./types";
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class Ternary extends Expression {
     constructor(private condition: Expression, private trueExpression: Expression, private falseExpression: Expression, line: number, column: number) {
         super(line, column);
@@ -39,4 +39,22 @@ export class Ternary extends Expression {
             return this.falseExpression.execute(entorno);
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar nodos para la condición, la expresión verdadera y la expresión falsa
+        const conditionNode = this.condition.generateNode(dotGenerator);
+        const trueExpressionNode = this.trueExpression.generateNode(dotGenerator);
+        const falseExpressionNode = this.falseExpression.generateNode(dotGenerator);
+        
+        // Crear el nodo para la operación ternaria
+        const ternaryNode = dotGenerator.addNode("Ternary");
+    
+        // Conectar el nodo ternario con la condición, la expresión verdadera y la falsa
+        dotGenerator.addEdge(ternaryNode, conditionNode);
+        dotGenerator.addEdge(ternaryNode, trueExpressionNode);
+        dotGenerator.addEdge(ternaryNode, falseExpressionNode);
+    
+        return ternaryNode;
+    }
+    
+    
 }

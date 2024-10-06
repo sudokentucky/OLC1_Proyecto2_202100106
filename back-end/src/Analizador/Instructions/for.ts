@@ -4,7 +4,7 @@ import { Environment } from "../Environment/environment";
 import Errors from "../Error/error";
 import { Break, Continue } from "./transfer";
 import { DataType } from "../expression/types";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase para la sentencia For.
  */
@@ -61,4 +61,28 @@ export class For extends Instruction {
             this.update.execute(forEnv); // Ejecutar la actualización
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar nodos para las diferentes partes del ciclo for
+        const initNode = this.initialization.generateNode(dotGenerator);
+        const conditionNode = this.condition.generateNode(dotGenerator);
+        const updateNode = this.update.generateNode(dotGenerator);
+        
+        // Crear el nodo principal para el ciclo `For`
+        const forNode = dotGenerator.addNode("For");
+    
+        // Conectar el nodo del `For` con las partes inicialización, condición y actualización
+        dotGenerator.addEdge(forNode, initNode);
+        dotGenerator.addEdge(forNode, conditionNode);
+        dotGenerator.addEdge(forNode, updateNode);
+    
+        // Generar y conectar los nodos para las instrucciones dentro del ciclo `for`
+        for (const instruction of this.instructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(forNode, instructionNode); // Conectar cada instrucción al nodo `For`
+        }
+    
+        return forNode;
+    }
+    
+    
 }

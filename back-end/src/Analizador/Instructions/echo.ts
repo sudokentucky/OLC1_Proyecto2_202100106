@@ -3,7 +3,7 @@ import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
 import { Instruction } from "../abstract/instruction";
 import { DataType } from "../expression/types";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class Echo extends Instruction {
     constructor(private expression: Expression, line: number, column: number) {
         super(line, column);
@@ -59,4 +59,18 @@ export class Echo extends Instruction {
             setConsole("Error al ejecutar la instrucción Print: " + error);
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la expresión que se va a imprimir
+        const expressionNode = this.expression.generateNode(dotGenerator);
+    
+        // Crear el nodo principal para la instrucción `Echo`
+        const echoNode = dotGenerator.addNode("Echo");
+    
+        // Conectar el nodo de `Echo` con el nodo de la expresión
+        dotGenerator.addEdge(echoNode, expressionNode);
+    
+        return echoNode;
+    }
+    
+
 }

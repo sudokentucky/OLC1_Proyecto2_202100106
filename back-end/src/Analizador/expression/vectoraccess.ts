@@ -3,7 +3,7 @@ import { Expression } from "../abstract/expression";
 import { Result, DataType } from "../expression/types";
 import Errors from "../Error/error";
 import { Arreglo } from "../Environment/array"; // Importamos la clase Arreglo
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class VectorAccess extends Expression {
     private id: string;
     private index: Expression;
@@ -57,4 +57,17 @@ export class VectorAccess extends Expression {
         if (value === null) return DataType.NULO;
         return DataType.NULO;
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la expresión del índice
+        const indexNode = this.index.generateNode(dotGenerator);
+        
+        // Crear el nodo para el acceso al vector con su identificador
+        const vectorAccessNode = dotGenerator.addNode(`VectorAccess: ${this.id}`);
+    
+        // Conectar el nodo de VectorAccess con el nodo del índice
+        dotGenerator.addEdge(vectorAccessNode, indexNode);
+    
+        return vectorAccessNode;
+    }
+    
 }

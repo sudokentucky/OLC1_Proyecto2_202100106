@@ -2,7 +2,7 @@
 import { DataType } from "./types"; // Definición de los tipos de datos posibles (ENTERO, DECIMAL, BOOLEANO, STRING, NULO)
 import { Result } from "./types"; // Estructura del resultado de una expresión (valor y tipo de dato)
 import { Expression } from "../abstract/expression"; // Clase base que representa una expresión
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase que representa una expresión básica en el lenguaje.
  * Una expresión básica es un valor literal, como un número, cadena, o valor booleano.
@@ -65,4 +65,17 @@ export class Basic extends Expression {
         // Si no es ninguno de los anteriores (posiblemente es NULO), devuelve un valor nulo
         return { value: null, DataType: DataType.NULO };
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Escapar las comillas dobles en el valor si es un string
+        const escapedValue = typeof this.value === 'string' ? this.value.replace(/"/g, '\\"') : this.value;
+        
+        // Crear el nodo para la expresión básica con el valor escapado y el tipo de dato
+        const basicNode = dotGenerator.addNode(`Basic: ${escapedValue} (${DataType[this.type]})`);
+        
+        // Retornar el identificador del nodo creado
+        return basicNode;
+    }
+    
+    
+    
 }

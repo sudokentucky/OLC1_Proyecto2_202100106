@@ -3,6 +3,7 @@ import { Expression } from "./expression"; // Clase que representa una expresió
 import { DataType, Result } from "../expression/types"; // Tipos de datos utilizados y resultado de la expresión
 import { Instruction } from "./instruction"; // Clase base de la cual heredan todas las instrucciones
 import Errors from "../Error/error";
+import { DotGenerator } from "../Tree/DotGenerator";
 
 /**
  * Clase que representa la declaración de variables, tanto mutables como inmutables.
@@ -144,4 +145,24 @@ export class Declaration extends Instruction {
                 return { value: null, DataType: DataType.NULO };
         }
     }
+    // Implementación del método generateNode usando DotGenerator
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo para la declaración
+        const declarationNode = dotGenerator.addNode(`Declaration: ${this.DataType}`);
+
+        // Crear el nodo para el identificador
+        const idNode = dotGenerator.addNode(`ID: ${this.ids}`);
+        dotGenerator.addEdge(declarationNode, idNode);
+
+        // Si hay una expresión, crear el nodo para el valor
+        if (this.exp) {
+            const valueNode = this.exp.generateNode(dotGenerator);
+            dotGenerator.addEdge(declarationNode, valueNode);
+        }
+
+        return declarationNode;
+    }
+    
+    
+    
 }

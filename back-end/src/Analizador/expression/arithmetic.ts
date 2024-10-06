@@ -2,6 +2,7 @@ import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
 import { Result, DataType } from "./types";
 import Errors from "../Error/error";
+import { DotGenerator } from "../Tree/DotGenerator";
 
 // Enum que define las operaciones aritméticas
 export enum ArithmeticOption {
@@ -124,14 +125,14 @@ export class Arithmetic extends Expression {
             case ArithmeticOption.NEG:
                 return this.performOperation(leftValue, null, DominanteNeg, "-");
             default:
-                throw new Errors("Sintáctico", `Operador aritmético no reconocido en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                throw Errors.addError("Sintáctico", `Operador aritmético no reconocido en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
         }
     }
 
     // Verificación de que el operando derecho no sea nulo
     private ensureRightValue(rightValue: Result | null, operator: string): void {
         if (!rightValue) {
-            throw new Errors("Sintáctico", `Falta el operando derecho para ${operator} en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+            throw Errors.addError("Sintáctico", `Falta el operando derecho para ${operator} en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
         }
     }
 
@@ -142,7 +143,7 @@ export class Arithmetic extends Expression {
         // Si el tipo dominante es NULO, arroja un error semántico
         if (DominateType === undefined || DominateType === DataType.NULO) {
             const rightDataType = rightValue ? DataType[rightValue.DataType] : 'NULO';
-            throw new Errors(
+            throw Errors.addError(
                 "Semántico", 
                 `Operación '${operator}' no permitida entre ${DataType[leftValue.DataType]} y ${rightDataType} en la línea ${this.linea}, columna ${this.columna}`,
                 this.linea,
@@ -164,7 +165,7 @@ export class Arithmetic extends Expression {
             case DataType.STRING:
                 return { value: leftValue.value.toString() + (rightValue ? rightValue.value.toString() : ""), DataType: DataType.STRING };
             default:
-                throw new Errors("Semántico", `Operación no soportada para el tipo de datos en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                throw Errors.addError("Semántico", `Operación no soportada para el tipo de datos en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
         }
     }
     
@@ -183,8 +184,32 @@ export class Arithmetic extends Expression {
             case "%": return left % right;
             case "√": return Math.pow(left, 1 / right);  // Raíz
             default:
-                throw new Errors("Semántico", `Operador ${operator} no soportado en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                throw Errors.addError("Semántico", `Operador ${operator} no soportado en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para el operando izquierdo
+        const leftNode = this.left.generateNode(dotGenerator);
+        
+        // Generar el nodo para el operando derecho si existe
+        const rightNode = this.right ? this.right.generateNode(dotGenerator) : null;
+    
+        // Etiqueta del nodo para la operación aritmética
+        const operatorLabel = `Arithmetic: ${ArithmeticOption[this.operator]}`;
+    
+        // Crear el nodo para la operación aritmética
+        const operationNode = dotGenerator.addNode(operatorLabel);
+    
+        // Conectar el nodo de la operación con el operando izquierdo
+        dotGenerator.addEdge(operationNode, leftNode);
+    
+        // Conectar el nodo de la operación con el operando derecho si existe
+        if (rightNode) {
+            dotGenerator.addEdge(operationNode, rightNode);
+        }
+    
+        return operationNode;
+    }
+    
     
 }

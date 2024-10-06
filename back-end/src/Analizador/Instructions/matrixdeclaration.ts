@@ -4,7 +4,7 @@ import { Result, DataType } from "../expression/types";
 import { Instruction } from "../abstract/instruction";
 import Errors from "../Error/error";
 import { Arreglo } from "../Environment/array";  // Importamos la clase Arreglo
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class MatrixDeclaration extends Instruction {
     private tipo: DataType;    // Tipo de datos de la matriz (int, string, etc.)
     private ids: string[];     // Lista de identificadores de la matriz
@@ -135,4 +135,34 @@ export class MatrixDeclaration extends Instruction {
                 return null;   // Valor por defecto para nulos
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo principal para la declaración de la matriz con los identificadores
+        const matrixDeclarationNode = dotGenerator.addNode(`MatrixDeclaration: ${this.ids.join(", ")}`);
+    
+        // Si es declaración con tamaño (tipo 1)
+        if (this.filas && this.columnas) {
+            const filasNode = this.filas.generateNode(dotGenerator);
+            const columnasNode = this.columnas.generateNode(dotGenerator);
+    
+            // Crear nodo para el tamaño de la matriz y conectar los nodos de filas y columnas
+            const sizeNode = dotGenerator.addNode("Size");
+            dotGenerator.addEdge(sizeNode, filasNode);
+            dotGenerator.addEdge(sizeNode, columnasNode);
+            dotGenerator.addEdge(matrixDeclarationNode, sizeNode);
+        }
+    
+        // Si es declaración con valores (tipo 2)
+        if (this.values) {
+            for (const row of this.values) {
+                for (const expr of row) {
+                    const valueNode = expr.generateNode(dotGenerator);
+                    dotGenerator.addEdge(matrixDeclarationNode, valueNode); // Conectar cada valor de la matriz
+                }
+            }
+        }
+    
+        return matrixDeclarationNode;
+    }
+    
+    
 }

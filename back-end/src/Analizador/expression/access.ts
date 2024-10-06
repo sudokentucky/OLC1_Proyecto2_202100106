@@ -2,7 +2,7 @@ import { Environment } from "../Environment/environment"; // El entorno donde se
 import { Expression } from "../abstract/expression"; // Clase base para las expresiones
 import { Result } from "./types"; // Tipo que representa el resultado de una expresión
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase que representa el acceso a una variable en el entorno de ejecución.
  * Hereda de la clase `Expression`, lo que indica que es una expresión evaluable.
@@ -34,9 +34,18 @@ export class Access extends Expression {
         // Si la variable es encontrada, retorna su valor y tipo de dato
         if (variable) {
             return { value: variable.getValor(), DataType: variable.DataType };
-        }
+        }else{
 
         // Si la variable no se encuentra, lanza un error
-        throw new Errors("Semántico", `La variable ${this.id} no existe en el entorno actual`, this.linea, this.columna);
+        throw Errors.addError("Semántico", `La variable ${this.id} no existe en el entorno actual`, this.linea, this.columna);
+        }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear un nodo para el acceso a la variable con su identificador
+        const accessNode = dotGenerator.addNode(`Access: ${this.id}`);
+
+        // Retorna el identificador del nodo creado
+        return accessNode;
+    }
+    
 }

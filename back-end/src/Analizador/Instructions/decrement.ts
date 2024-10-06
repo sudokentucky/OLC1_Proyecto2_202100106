@@ -2,7 +2,7 @@ import { Instruction } from "../abstract/instruction";
 import { Environment } from "../Environment/environment";
 import { Result, DataType } from "../expression/types";
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class Decrement extends Instruction {
     private id: string;  // El identificador de la variable a decrementar
 
@@ -41,4 +41,18 @@ export class Decrement extends Instruction {
 
         return { value: null, DataType: DataType.NULO };  // Retorna un valor nulo porque es una operación de asignación
     }
+
+    /**
+     * Genera el nodo DOT para la operación de decremento.
+     * 
+     * @param ast - Referencia al AST que contiene el contador de nodos.
+     * @returns string - Representación en formato DOT del nodo de decremento.
+     */
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo principal para la operación de decremento con el identificador de la variable
+        const decrementNode = dotGenerator.addNode(`Decremento: ${this.id}`);
+    
+        return decrementNode;
+    }
+    
 }

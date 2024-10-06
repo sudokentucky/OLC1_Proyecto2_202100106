@@ -1,6 +1,6 @@
-// Importa las dependencias necesarias
-import { Environment } from "../Environment/environment"; // Entorno donde se ejecutan y almacenan las expresiones
-import { Result } from "../expression/types"; // Resultado de la evaluación de la expresión, incluyendo valor y tipo de dato
+import { Environment } from "../Environment/environment";  // Entorno donde se ejecutan las expresiones
+import { Result } from "../expression/types"; 
+import { DotGenerator } from "../Tree/DotGenerator";             // Resultado de la evaluación de la expresión
 
 /**
  * Clase abstracta que representa una expresión en el lenguaje.
@@ -27,8 +27,24 @@ export abstract class Expression {
      * 
      * @param entorno - El entorno actual donde se evaluará la expresión, permitiendo acceso a variables y funciones.
      * @returns Result - El valor resultante de la evaluación de la expresión, que incluye tanto el valor como el tipo de dato.
-     * 
-     * Las clases derivadas deben implementar este método según el tipo de expresión que representan (por ejemplo, una constante, una operación aritmética, etc.).
      */
     public abstract execute(entorno: Environment): Result;
+
+    /**
+     * Método general para generar nodos en formato DOT para Graphviz.
+     * Este método puede ser reutilizado por cualquier expresión para crear su nodo.
+     * 
+     * @param ast - Referencia al AST, que contiene el contador de nodos.
+     * @param label - La etiqueta que se mostrará en el nodo.
+     * @param children - Los nodos hijos conectados a este nodo (opcional).
+     * @returns string - Representación en formato DOT del nodo y sus conexiones.
+     */
+    /**
+     * Método abstracto para generar el nodo DOT de la expresión.
+     * Este método debe ser implementado por cada subclase de `Expression`.
+     * 
+     * @param ast - Referencia al AST que contiene el contador de nodos.
+     * @returns string - Representación en formato DOT de la expresión.
+     */
+    public abstract generateNode(dotGenerator: DotGenerator): string;
 }

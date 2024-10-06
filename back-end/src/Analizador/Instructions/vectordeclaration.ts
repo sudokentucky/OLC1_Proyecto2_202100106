@@ -4,7 +4,7 @@ import { Result, DataType } from "../expression/types";
 import { Expression } from "../abstract/expression";
 import Errors from "../Error/error";
 import { Arreglo } from "../Environment/array"; // Importamos la clase Arreglo
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class VectorDeclaration extends Instruction {
     private tipo: DataType;            // Tipo de dato del vector
     private ids: string[];             // Lista de identificadores del vector
@@ -136,4 +136,29 @@ export class VectorDeclaration extends Instruction {
                 return null;   // Valor por defecto para nulos
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo principal para la declaración del vector con los identificadores
+        const vectorDeclarationNode = dotGenerator.addNode(`VectorDeclaration: ${this.ids.join(", ")}`);
+    
+        // Si es declaración con tamaño (tipo 1)
+        if (this.size1) {
+            const sizeNode = this.size1.generateNode(dotGenerator);
+            
+            // Crear nodo para el tamaño del vector y conectarlo al nodo de la declaración
+            const sizeLabelNode = dotGenerator.addNode("Size");
+            dotGenerator.addEdge(sizeLabelNode, sizeNode);
+            dotGenerator.addEdge(vectorDeclarationNode, sizeLabelNode);
+        }
+    
+        // Si es declaración con valores (tipo 2)
+        if (this.values) {
+            for (const valueExpr of this.values) {
+                const valueNode = valueExpr.generateNode(dotGenerator);
+                dotGenerator.addEdge(vectorDeclarationNode, valueNode); // Conectar cada valor al nodo de la declaración del vector
+            }
+        }
+    
+        return vectorDeclarationNode;
+    }
+    
 }

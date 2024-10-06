@@ -4,7 +4,7 @@ import { Environment } from "../Environment/environment";
 import Errors from "../Error/error";
 import { Result, DataType } from "../expression/types";
 import { Arreglo } from "../Environment/array"; // Importamos la clase Arreglo
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class VectorAssignment extends Instruction {
     private id: string;       // Nombre del vector
     private index1: Expression; // Primer índice (en caso de vector unidimensional)
@@ -73,4 +73,19 @@ export class VectorAssignment extends Instruction {
             throw new Errors("Semántico", `Error asignando el valor al vector '${this.id}' en la posición [${idx1}].`, this.linea, this.columna);
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar nodos para el índice y el valor que se va a asignar
+        const indexNode = this.index1.generateNode(dotGenerator);
+        const valueNode = this.value.generateNode(dotGenerator);
+        
+        // Crear el nodo principal para la asignación del vector con su identificador
+        const vectorAssignmentNode = dotGenerator.addNode(`VectorAssignment: ${this.id}`);
+    
+        // Conectar el nodo de asignación del vector con los nodos del índice y el valor
+        dotGenerator.addEdge(vectorAssignmentNode, indexNode);
+        dotGenerator.addEdge(vectorAssignmentNode, valueNode);
+    
+        return vectorAssignmentNode;
+    }
+    
 }

@@ -1,7 +1,7 @@
 import { Instruction } from "../abstract/instruction";
 import { Environment } from "../Environment/environment";
 import { Break } from "./transfer";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase para la sentencia Loop.
  */
@@ -27,4 +27,18 @@ export class Loop extends Instruction {
             }
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo principal para el ciclo infinito `Loop`
+        const loopNode = dotGenerator.addNode("Loop");
+    
+        // Generar y conectar los nodos para las instrucciones dentro del ciclo `Loop`
+        for (const instruction of this.instructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(loopNode, instructionNode); // Conectar cada instrucción al nodo `Loop`
+        }
+    
+        return loopNode;
+    }
+    
+    
 }

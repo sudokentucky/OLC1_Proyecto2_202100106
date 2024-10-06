@@ -4,6 +4,7 @@ import { Environment } from "../Environment/environment";
 import { Case } from "./case";
 import { Default } from "./default";
 import { Break } from "./transfer";
+import { DotGenerator } from "../Tree/DotGenerator";
 
 export class Switch extends Instruction {
     private expression: Expression;
@@ -41,4 +42,30 @@ export class Switch extends Instruction {
             return this.defaultCase.execute(environment);
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la expresión del `switch`
+        const expressionNode = this.expression.generateNode(dotGenerator);
+        
+        // Crear el nodo principal para el `Switch`
+        const switchNode = dotGenerator.addNode("Switch");
+    
+        // Conectar el nodo `Switch` con el nodo de la expresión
+        dotGenerator.addEdge(switchNode, expressionNode);
+    
+        // Generar y conectar los nodos para los casos del `switch`
+        for (const caseBlock of this.cases) {
+            const caseNode = caseBlock.generateNode(dotGenerator);
+            dotGenerator.addEdge(switchNode, caseNode);
+        }
+    
+        // Generar y conectar el nodo para el bloque `default`, si existe
+        if (this.defaultCase) {
+            const defaultNode = this.defaultCase.generateNode(dotGenerator);
+            dotGenerator.addEdge(switchNode, defaultNode);
+        }
+    
+        return switchNode;
+    }
+    
+    
 }

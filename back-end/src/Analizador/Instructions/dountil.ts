@@ -4,7 +4,7 @@ import { Environment } from "../Environment/environment";
 import Errors from "../Error/error";
 import { Break, Continue } from "./transfer";
 import { DataType } from "../expression/types";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase para la sentencia Do-Until.
  */
@@ -42,4 +42,30 @@ export class DoUntil extends Instruction {
             }
         } while (!conditionResult.value); // Se ejecuta hasta que la condición sea verdadera
     }
+
+    /**
+     * Genera el nodo DOT para la estructura `do-until`.
+     * 
+     * @param ast - Referencia al AST que contiene el contador de nodos.
+     * @returns string - Representación en formato DOT del nodo del ciclo `do-until`.
+     */
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la condición del ciclo
+        const conditionNode = this.condition.generateNode(dotGenerator);
+    
+        // Crear el nodo principal para el ciclo `Do-Until`
+        const doUntilNode = dotGenerator.addNode("Do-Until");
+    
+        // Conectar el nodo del ciclo con el nodo de la condición
+        dotGenerator.addEdge(doUntilNode, conditionNode);
+    
+        // Generar y conectar los nodos para las instrucciones dentro del ciclo `do`
+        for (const instruction of this.instructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(doUntilNode, instructionNode); // Conectar cada instrucción al nodo `Do-Until`
+        }
+    
+        return doUntilNode;
+    }
+    
 }

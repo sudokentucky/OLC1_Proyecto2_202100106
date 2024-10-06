@@ -1,15 +1,13 @@
-// Importa la clase Environment desde el archivo environment.ts en el directorio Environment
 import { Environment } from "../Environment/environment";
+import { DotGenerator } from '../Tree/DotGenerator';
 
 /**
  * Clase abstracta que define una instrucción.
  * Esta clase sirve como base para todas las instrucciones que se puedan definir.
  */
 export abstract class Instruction {
-    // Línea en la que se encuentra la instrucción en el código fuente
-    public linea: number;
-    // Columna en la que se encuentra la instrucción en el código fuente
-    public columna: number;
+    public linea: number;  // Línea en la que se encuentra la instrucción en el código fuente
+    public columna: number; // Columna en la que se encuentra la instrucción en el código fuente
 
     /**
      * Constructor de la clase Instruction.
@@ -28,4 +26,12 @@ export abstract class Instruction {
      * @returns El resultado de la ejecución de la instrucción.
      */
     public abstract execute(entorno: Environment): any;
+
+    /**
+     * Método abstracto que genera el nodo DOT específico para cada instrucción.
+     * Cada instrucción debe implementar este método para generar su representación en el AST.
+     * @param dotGenerator - Instancia del DotGenerator, que se utiliza para crear nodos y conexiones.
+     * @returns string - El identificador del nodo generado en el DOT.
+     */
+    public abstract generateNode(dotGenerator: DotGenerator): string;
 }

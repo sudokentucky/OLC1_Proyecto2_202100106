@@ -2,7 +2,7 @@ import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
 import { Result, DataType } from "./types";
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 
 export enum LogicalOption {
     AND,  // &&
@@ -87,4 +87,29 @@ export class Logical extends Expression {
                 );
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para el operando izquierdo
+        const leftNode = this.left.generateNode(dotGenerator);
+        
+        // Generar el nodo para el operando derecho si existe (AND, OR)
+        const rightNode = this.right ? this.right.generateNode(dotGenerator) : null;
+        
+        // Etiqueta del nodo para la operación lógica
+        const operatorLabel = `Logical: ${LogicalOption[this.operator]}`;
+        
+        // Crear el nodo para la operación lógica
+        const logicalNode = dotGenerator.addNode(operatorLabel);
+        
+        // Conectar el nodo de la operación lógica con el operando izquierdo
+        dotGenerator.addEdge(logicalNode, leftNode);
+    
+        // Conectar el nodo de la operación lógica con el operando derecho si existe
+        if (rightNode) {
+            dotGenerator.addEdge(logicalNode, rightNode);
+        }
+    
+        return logicalNode;
+    }
+    
+    
 }

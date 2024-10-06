@@ -2,7 +2,7 @@ import { Instruction } from "../abstract/instruction";
 import { Environment } from "../Environment/environment";
 import { Result, DataType } from "../expression/types"; // Importa Result y DataType
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class Increment extends Instruction {
     private id: string;  // El identificador de la variable a incrementar
 
@@ -41,4 +41,12 @@ export class Increment extends Instruction {
 
         return { value: null, DataType: DataType.NULO };  // Retorna un valor nulo porque es una operación de asignación
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo para la operación de incremento con el identificador de la variable
+        const incrementNode = dotGenerator.addNode(`Incremento: ${this.id}`);
+    
+        return incrementNode;
+    }
+    
+    
 }

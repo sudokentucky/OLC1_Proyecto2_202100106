@@ -4,7 +4,7 @@ import { Environment } from "../Environment/environment";
 import Errors from "../Error/error";
 import { DataType } from "../expression/types";
 import { Break, Continue } from "./transfer";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase para la sentencia While.
  */
@@ -46,4 +46,23 @@ export class While extends Instruction {
             }
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la condición del ciclo `while`
+        const conditionNode = this.condition.generateNode(dotGenerator);
+        
+        // Crear el nodo principal para el ciclo `While`
+        const whileNode = dotGenerator.addNode("While");
+    
+        // Conectar el nodo `While` con el nodo de la condición
+        dotGenerator.addEdge(whileNode, conditionNode);
+    
+        // Generar y conectar los nodos para las instrucciones dentro del ciclo
+        for (const instruction of this.instructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(whileNode, instructionNode);
+        }
+    
+        return whileNode;
+    }
+    
 }

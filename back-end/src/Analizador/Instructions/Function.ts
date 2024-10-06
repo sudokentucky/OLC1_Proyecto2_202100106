@@ -1,10 +1,9 @@
 import { Environment } from "../Environment/environment"; // Importamos el entorno
 import { Instruction } from "../abstract/instruction";    // Clase base para las instrucciones
 import { Statement } from "./statement";                 // Bloque de código que ejecutará la función
-import { DataType, Result } from "../expression/types";  // Para manejar tipos y resultados
-import { Return } from "./return";                       // Clase para manejar valores de retorno
+import { DataType } from "../expression/types";          // Para manejar tipos y resultados
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase `Function` que representa una función dentro del entorno de ejecución.
  * 
@@ -38,60 +37,44 @@ export class Function extends Instruction {
      * @param environment - El entorno de ejecución actual (`Environment`) donde se almacenará la función.
      */
     public execute(environment: Environment) {
+        // Verificar si ya existe una función con el mismo nombre en el entorno
+        if (environment.getFuncion(this.id)) {
+            Errors.addError("Semántico", `La función ${this.id} ya está definida`, this.linea, this.columna);
+            return;
+        }
+        
         // Guarda la función en el entorno actual, asociándola a su identificador `id`.
         environment.guardarFuncion(this.id, this);
+        console.log(`Función ${this.id} guardada correctamente en el entorno.`);
     }
 
     /**
-     * Método para ejecutar una función ya definida.
-     * @param environment - El entorno actual en el que se ejecuta la función.
-     * @param args - Los argumentos pasados al llamar a la función.
-     * @returns Un resultado (Result) o null si no hay retorno.
+     * Método `generateNode` que genera el nodo en formato DOT para Graphviz.
+     * 
+     * @param ast - Referencia al AST que contiene el contador de nodos.
+     * @returns string - Representación en formato DOT del nodo de la función.
      */
-    public call(environment: Environment, args: Result[]): Result | null {
-        // Crear un nuevo entorno para la función (subentorno)
-        const subEntorno = new Environment(environment);
-        console.log("Subentorno creado para la función", this.id);
-
-        // Verificar que los argumentos coincidan con los parámetros
-        if (args.length > this.parametros.length) {
-            Errors.addError("Semántico", `Se pasaron más argumentos de los esperados en la función ${this.id}`, this.linea, this.columna);
-            return null;
-        }
-
-        // Asignar los parámetros al nuevo entorno
-        for (let i = 0; i < this.parametros.length; i++) {
-            const param = this.parametros[i];
-            const valor = args[i] != null ? args[i].value : param.defaultValue;
-
-            if (valor === undefined) {
-                Errors.addError("Semántico", `Falta el argumento para el parámetro ${param.id} en la función ${this.id}`, this.linea, this.columna);
-                return null;
-            }
-
-            // Guardar el parámetro en el subentorno
-            console.log("Variable", param.id, "con valor", valor, "y tipo", param.tipo, "guardada en el subentorno", subEntorno);
-            subEntorno.SaveVariable(param.id, { value: valor, DataType: param.tipo }, param.tipo, this.linea, this.columna, false);
-        }
-
-        // Ejecutar el cuerpo de la función (código en `statement`)
-        const resultado = this.statement.execute(subEntorno);
-
-        // Verificar si el resultado es una instancia de `Return`
-        if (resultado instanceof Return) {
-            const returnValue = resultado.execute(subEntorno);
-
-            // Si la función tiene un retorno esperado, verificar el tipo
-            if (returnValue.value && returnValue.value.type !== this.tipoRetorno) {
-                Errors.addError("Semántico", `El tipo de retorno en la función ${this.id} no coincide con el tipo esperado`, this.linea, this.columna);
-                return null;
-            }
-
-            return returnValue.value || null;
-        }
-
-        // Si no se encuentra una instrucción de retorno explícito
-        Errors.addError("Semántico", `La función ${this.id} no retornó ningún valor`, this.linea, this.columna);
-        return null;
+    public generateNode(dotGenerator: DotGenerator): string {
+        // 1. Crear nodo para la función con su identificador
+        const functionNode = dotGenerator.addNode(`Función: ${this.id}`);
+        
+        // 2. Crear nodos para los parámetros de la función
+        this.parametros.forEach((param) => {
+            // Crear un nodo para cada parámetro con su tipo
+            const paramNode = dotGenerator.addNode(`Parámetro: ${param.id} (${param.tipo})`);
+            
+            // Conectar el nodo de la función con el nodo del parámetro
+            dotGenerator.addEdge(functionNode, paramNode);
+        });
+    
+        // 3. Generar el nodo para el bloque de código (statement)
+        const statementNode = this.statement.generateNode(dotGenerator);
+        
+        // Conectar el nodo de la función con el bloque de código
+        dotGenerator.addEdge(functionNode, statementNode);
+    
+        // Retornar el nodo principal de la función
+        return functionNode;
     }
+    
 }

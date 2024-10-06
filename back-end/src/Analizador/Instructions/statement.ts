@@ -1,6 +1,7 @@
 import { Environment } from "../Environment/environment"; // Importa la clase Environment para manejar el entorno de ejecución
 import { Instruction } from "../abstract/instruction";    // Importa la clase abstracta Instruction, de la que heredan las instrucciones
-
+import { Return } from "./return";  // Importa la clase Return para verificar si se devuelve un valor
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase `Statement` que representa un bloque de instrucciones.
  * 
@@ -39,14 +40,35 @@ export class Statement extends Instruction {
                 // Ejecuta la instrucción `inst` utilizando el entorno existente `environment`.
                 const result = inst.execute(environment);
 
-                // Si la instrucción devuelve un valor (diferente de null o undefined), se interrumpe la ejecución
-                // del resto de las instrucciones y se retorna ese valor.
-                if (result != null && result != undefined) return result;
+                // Si la instrucción es una instancia de `Return`, detenemos la ejecución y devolvemos el valor.
+                if (result instanceof Return) {
+                    console.log("Instrucción de retorno encontrada. Deteniendo la ejecución del bloque.");
+                    console.log("Retornando valor:", result);
+                    return result;
+                }
 
+                // Si alguna instrucción devuelve un valor (no null ni undefined), lo retornamos.
+                if (result != null && result != undefined) {
+                    return result;
+                }
             } catch (error) {
                 // En caso de que ocurra un error durante la ejecución de alguna instrucción, se captura y se imprime el error.
                 console.log(error);
             }
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Crear el nodo principal para el bloque de instrucciones `Statement`
+        const statementNode = dotGenerator.addNode("Statement");
+    
+        // Generar y conectar los nodos para cada instrucción en el bloque
+        for (const instruction of this.code) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(statementNode, instructionNode);
+        }
+    
+        return statementNode;
+    }
+    
+    
 }

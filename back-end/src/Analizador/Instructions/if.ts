@@ -4,7 +4,7 @@ import { Result, DataType } from "../expression/types"; // Tipos de datos y resu
 import { Expression } from "../abstract/expression";
 import { Break, Continue } from "./transfer";
 import Errors from "../Error/error"; // Manejo de errores
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class If extends Instruction {
     private condition: Expression; // La condición a evaluar (debe devolver un booleano)
     private instructions: Instruction[]; // Instrucciones que se ejecutarán si la condición es verdadera
@@ -36,6 +36,25 @@ export class If extends Instruction {
     
         return { value: null, DataType: DataType.NULO }; // Retorna un valor nulo al finalizar
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la condición del `if`
+        const conditionNode = this.condition.generateNode(dotGenerator);
+        
+        // Crear el nodo principal del `If`
+        const ifNode = dotGenerator.addNode("If");
+    
+        // Conectar el nodo del `If` con el nodo de la condición
+        dotGenerator.addEdge(ifNode, conditionNode);
+    
+        // Generar y conectar los nodos para las instrucciones dentro del `if`
+        for (const instruction of this.instructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(ifNode, instructionNode);
+        }
+    
+        return ifNode;
+    }
+    
     
 }
 
@@ -80,6 +99,31 @@ export class IfElse extends Instruction {
     
         return { value: null, DataType: DataType.NULO };
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la condición del `if`
+        const conditionNode = this.condition.generateNode(dotGenerator);
+        
+        // Crear el nodo principal del `If-Else`
+        const ifElseNode = dotGenerator.addNode("If-Else");
+    
+        // Conectar el nodo del `If-Else` con el nodo de la condición
+        dotGenerator.addEdge(ifElseNode, conditionNode);
+    
+        // Generar y conectar los nodos para las instrucciones del bloque `if`
+        for (const instruction of this.ifInstructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(ifElseNode, instructionNode);
+        }
+    
+        // Generar y conectar los nodos para las instrucciones del bloque `else`
+        for (const instruction of this.elseInstructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(ifElseNode, instructionNode);
+        }
+    
+        return ifElseNode;
+    }
+    
     
 }
 
@@ -157,6 +201,56 @@ export class IfElseIf extends Instruction {
         }
     
         return { value: null, DataType: DataType.NULO };
+    }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la condición del `if`
+        const conditionNode = this.condition.generateNode(dotGenerator);
+        
+        // Crear el nodo principal del `If-ElseIf`
+        const ifElseIfNode = dotGenerator.addNode("If-ElseIf");
+    
+        // Conectar el nodo del `If-ElseIf` con el nodo de la condición
+        dotGenerator.addEdge(ifElseIfNode, conditionNode);
+    
+        // Generar y conectar los nodos para las instrucciones del bloque `if`
+        for (const instruction of this.ifInstructions) {
+            const instructionNode = instruction.generateNode(dotGenerator);
+            dotGenerator.addEdge(ifElseIfNode, instructionNode);
+        }
+    
+        // Generar y conectar los nodos para los bloques `else if`
+        for (const block of this.elseIfBlocks) {
+            // Generar el nodo para la condición del bloque `else if`
+            const elseIfConditionNode = block.condition.generateNode(dotGenerator);
+            const elseIfNode = dotGenerator.addNode("ElseIf");
+    
+            // Conectar el nodo `ElseIf` con su condición
+            dotGenerator.addEdge(elseIfNode, elseIfConditionNode);
+    
+            // Conectar el nodo principal `If-ElseIf` con el bloque `ElseIf`
+            dotGenerator.addEdge(ifElseIfNode, elseIfNode);
+    
+            // Generar y conectar las instrucciones del bloque `else if`
+            for (const instruction of block.instructions) {
+                const instructionNode = instruction.generateNode(dotGenerator);
+                dotGenerator.addEdge(elseIfNode, instructionNode);
+            }
+        }
+    
+        // Generar y conectar los nodos para las instrucciones del bloque `else` (si existe)
+        if (this.elseInstructions) {
+            const elseNode = dotGenerator.addNode("Else");
+    
+            // Conectar el nodo principal `If-ElseIf` con el bloque `else`
+            dotGenerator.addEdge(ifElseIfNode, elseNode);
+    
+            for (const instruction of this.elseInstructions) {
+                const instructionNode = instruction.generateNode(dotGenerator);
+                dotGenerator.addEdge(elseNode, instructionNode);
+            }
+        }
+    
+        return ifElseIfNode;
     }
     
 }

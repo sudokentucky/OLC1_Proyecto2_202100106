@@ -3,7 +3,7 @@ import { Environment } from "../Environment/environment";
 import { Result } from "./types";
 import Errors from "../Error/error";
 import { Arreglo } from "../Environment/array"; // Asegúrate de que este sea el path correcto
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class MatrixAccess extends Expression {
     private id: string;
     private row: Expression;
@@ -40,4 +40,20 @@ export class MatrixAccess extends Expression {
             }
         }
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar los nodos para las expresiones de fila y columna
+        const rowNode = this.row.generateNode(dotGenerator);
+        const colNode = this.colExpr.generateNode(dotGenerator);
+        
+        // Crear el nodo para el acceso a la matriz con su identificador
+        const matrixAccessNode = dotGenerator.addNode(`MatrixAccess: ${this.id}`);
+    
+        // Conectar el nodo de MatrixAccess con los nodos de fila y columna
+        dotGenerator.addEdge(matrixAccessNode, rowNode);
+        dotGenerator.addEdge(matrixAccessNode, colNode);
+    
+        return matrixAccessNode;
+    }
+    
+    
 }

@@ -2,7 +2,7 @@ import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
 import { Result, DataType } from "../expression/types";
 import Errors from "../Error/error";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 export class Cast extends Expression {
     private expression: Expression;
     private targetType: DataType;
@@ -35,21 +35,18 @@ export class Cast extends Expression {
         }
     }
 
-     /**
+    /**
      * Realiza el casteo desde un valor de tipo entero.
      */
-     private castFromInt(exprValue: Result): Result {
+    private castFromInt(exprValue: Result): Result {
         switch (this.targetType) {
             case DataType.DECIMAL:
-                // Convertir de entero a decimal (double)
                 return { value: parseFloat(exprValue.value.toString()), DataType: DataType.DECIMAL };
 
             case DataType.STRING:
-                // Convertir de entero a string
                 return { value: exprValue.value.toString(), DataType: DataType.STRING };
 
             case DataType.CHAR:
-                // Convertir de entero a char usando el código ASCII
                 return { value: String.fromCharCode(exprValue.value), DataType: DataType.CHAR };
 
             default:
@@ -63,11 +60,9 @@ export class Cast extends Expression {
     private castFromDouble(exprValue: Result): Result {
         switch (this.targetType) {
             case DataType.ENTERO:
-                // Convertir de decimal a entero
                 return { value: Math.floor(exprValue.value), DataType: DataType.ENTERO };
 
             case DataType.STRING:
-                // Convertir de decimal a string
                 return { value: exprValue.value.toString(), DataType: DataType.STRING };
 
             default:
@@ -83,15 +78,33 @@ export class Cast extends Expression {
 
         switch (this.targetType) {
             case DataType.ENTERO:
-                // Convertir de char a entero (código ASCII)
                 return { value: charCode, DataType: DataType.ENTERO };
 
             case DataType.DECIMAL:
-                // Convertir de char a decimal (double) basado en el código ASCII
                 return { value: parseFloat(charCode.toString()), DataType: DataType.DECIMAL };
 
             default:
                 throw new Errors("Semántico", `No se puede castear un char al tipo ${DataType[this.targetType]}`, this.linea, this.columna);
         }
     }
+
+    /**
+     * Genera el nodo DOT para la operación de casteo.
+     * 
+     * @param ast - Referencia al AST que contiene el contador de nodos.
+     * @returns string - Representación en formato DOT del nodo del casteo.
+     */
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la expresión que se está casteando
+        const expressionNode = this.expression.generateNode(dotGenerator);
+    
+        // Crear el nodo principal del casteo con el tipo de destino
+        const castNode = dotGenerator.addNode(`Casteo a: ${DataType[this.targetType]}`);
+    
+        // Conectar el nodo del casteo con el nodo de la expresión
+        dotGenerator.addEdge(castNode, expressionNode);
+    
+        return castNode;
+    }
+    
 }

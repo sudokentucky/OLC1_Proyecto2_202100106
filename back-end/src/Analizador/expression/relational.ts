@@ -1,7 +1,7 @@
 import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
 import {Result, DataType} from "./types";
-
+import { DotGenerator } from "../Tree/DotGenerator";
 //Clase que define una expresion relacional
 export enum RelationalOption{
     IGUALDAD,
@@ -92,6 +92,23 @@ export class Relational extends Expression{
             default:
                 throw new Error("Operador relacional no reconocido");
         }
+    }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar nodos para las expresiones izquierda y derecha
+        const leftNode = this.left.generateNode(dotGenerator);
+        const rightNode = this.right.generateNode(dotGenerator);
+        
+        // Etiqueta del nodo para la operación relacional
+        const operatorLabel = `Relational: ${RelationalOption[this.operator]}`;
+        
+        // Crear el nodo principal para la operación relacional
+        const relationalNode = dotGenerator.addNode(operatorLabel);
+    
+        // Conectar el nodo de la operación relacional con los operandos izquierdo y derecho
+        dotGenerator.addEdge(relationalNode, leftNode);
+        dotGenerator.addEdge(relationalNode, rightNode);
+    
+        return relationalNode;
     }
     
 }

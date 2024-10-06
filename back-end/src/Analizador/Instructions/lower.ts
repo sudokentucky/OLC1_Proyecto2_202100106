@@ -3,7 +3,7 @@ import { Instruction } from "../abstract/instruction";  // Importamos la clase b
 import { Environment } from "../Environment/environment";  // Importamos el entorno
 import { DataType, Result } from "../expression/types";  // Importamos los tipos de datos y resultados
 import Errors from "../Error/error";  // Importamos el manejador de errores
-
+import { DotGenerator } from "../Tree/DotGenerator";
 /**
  * Clase `Lower` que representa la función nativa lower, la cual convierte una cadena a minúsculas.
  */
@@ -45,4 +45,18 @@ export class Lower extends Instruction {
         // Retornamos el nuevo valor en minúsculas
         return { value: lowerCaseValue, DataType: DataType.STRING };
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar el nodo para la expresión que se va a convertir a minúsculas
+        const expressionNode = this.expression.generateNode(dotGenerator);
+        
+        // Crear el nodo principal para la instrucción `Lower`
+        const lowerNode = dotGenerator.addNode("Lower");
+    
+        // Conectar el nodo `Lower` con el nodo de la expresión
+        dotGenerator.addEdge(lowerNode, expressionNode);
+    
+        return lowerNode;
+    }
+    
+    
 }

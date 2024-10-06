@@ -4,6 +4,7 @@ import { Expression } from "../abstract/expression"; // Clase base para expresio
 import { Result, DataType } from "../expression/types";
 import Errors from "../Error/error";
 import { Arreglo } from "../Environment/array"; // Importamos la clase Arreglo
+import { DotGenerator } from "../Tree/DotGenerator";
 
 export class MatrixAssignment extends Instruction {
     private id: string;
@@ -62,4 +63,22 @@ export class MatrixAssignment extends Instruction {
 
         return { value: null, DataType: DataType.NULO }; // La asignación no devuelve un valor útil
     }
+    public generateNode(dotGenerator: DotGenerator): string {
+        // Generar nodos para las expresiones de fila, columna y valor
+        const rowNode = this.row.generateNode(dotGenerator);
+        const colNode = this.colExpr.generateNode(dotGenerator);
+        const valueNode = this.value.generateNode(dotGenerator);
+        
+        // Crear el nodo principal para la asignación de la matriz con su identificador
+        const matrixAssignmentNode = dotGenerator.addNode(`MatrixAssignment: ${this.id}`);
+    
+        // Conectar el nodo de asignación de matriz con los nodos de fila, columna y valor
+        dotGenerator.addEdge(matrixAssignmentNode, rowNode);
+        dotGenerator.addEdge(matrixAssignmentNode, colNode);
+        dotGenerator.addEdge(matrixAssignmentNode, valueNode);
+    
+        return matrixAssignmentNode;
+    }
+    
+    
 }
