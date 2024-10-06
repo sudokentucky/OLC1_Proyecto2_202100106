@@ -40,28 +40,28 @@ export class Environment {
      * @param columna - La columna de código donde se declara la variable.
      * @throws Error - Si la variable ya existe y el tipo no coincide.
      */
-    SaveVariable(id: string, valor: Result, tipoDato: DataType, linea: number, columna: number, isConst: boolean) {
+    public SaveVariable(id: string, valor: Result, tipoDato: DataType, linea: number, columna: number, isConst: boolean) {
         console.log(`Intentando guardar variable ${id} con valor: ${valor.value} y tipo: ${DataType[tipoDato]} en la línea ${linea}, columna ${columna}`);
-    
-        // Verifica si la variable ya existe en el entorno actual
+
         if (this.variables.has(id)) {
             const existingSymbol = this.variables.get(id);
             if (existingSymbol) {
                 if (existingSymbol.esConstante()) {
-                    console.error(`Error: No se puede reasignar una constante (${id})`);
-                    Errors.addError("Semántico", `No se puede reasignar una constante (${id})`, linea, columna);
+                    const mensaje = `No se puede reasignar una constante (${id})`;
+                    console.error(mensaje);
+                    Errors.addError("Semántico", mensaje, linea, columna);
                     return;
                 }
-    
+
                 if (existingSymbol.DataType !== tipoDato) {
-                    console.error(`Error: No se puede asignar un valor de tipo ${DataType[tipoDato]} a una variable de tipo ${DataType[existingSymbol.DataType]}`);
-                    Errors.addError("Semántico", `No se puede asignar un valor de tipo ${DataType[tipoDato]} a una variable de tipo ${DataType[existingSymbol.DataType]}`, linea, columna);
+                    const mensaje = `No se puede asignar un valor de tipo ${DataType[tipoDato]} a una variable de tipo ${DataType[existingSymbol.DataType]}`;
+                    console.error(mensaje);
+                    Errors.addError("Semántico", mensaje, linea, columna);
                     return;
                 }
             }
         }
-    
-        // Si no existe o es del mismo tipo, crea o actualiza el símbolo
+
         const simbolo = new Symbol(id, valor.value, tipoDato, linea, columna, isConst);
         this.variables.set(id, simbolo);
         console.log(`Variable ${id} guardada correctamente en el entorno.`);
@@ -76,33 +76,32 @@ export class Environment {
      * @param valor - El nuevo valor empaquetado en un objeto `Result` que se asignará.
      * @throws Error - Si la variable no existe.
      */
-    UpdateVariable(id: string, valor: Result) {
+    public UpdateVariable(id: string, valor: Result) {
         console.log(`Intentando actualizar la variable ${id} con valor: ${valor.value}`);
         let entorno: Environment | null = this;
-    
-        // Recorre los entornos buscando la variable
+
         while (entorno) {
             if (entorno.variables.has(id)) {
                 const variable = entorno.variables.get(id);
-    
-                // Verificamos si la variable es constante
+
                 if (variable?.esConstante()) {
-                    console.error(`Error: No se puede reasignar una constante (${id})`);
-                    Errors.addError("Semántico", `No se puede reasignar una constante (${id})`, variable.getLinea(), variable.getColumna());
-                    return; // Salimos sin hacer la actualización
+                    const mensaje = `No se puede reasignar una constante (${id})`;
+                    console.error(mensaje);
+                    Errors.addError("Semántico", mensaje, variable.getLinea(), variable.getColumna());
+                    return;
                 }
-    
+
                 console.log(`Variable ${id} encontrada. Actualizando valor a ${valor.value}`);
-                variable?.setValor(valor); // Actualiza el valor si no es constante
+                variable?.setValor(valor);
                 return;
             }
-            entorno = entorno.entornoPadre; // Sigue buscando en el entorno padre
+            entorno = entorno.entornoPadre;
         }
-    
-        console.error(`Error: La variable ${id} no existe en el entorno`);
-        Errors.addError("Semántico", `La variable ${id} no existe en el entorno`, 0, 0);
+
+        const mensaje = `La variable ${id} no existe en el entorno`;
+        console.error(mensaje);
+        Errors.addError("Semántico", mensaje, 0, 0);
     }
-    
 
     /**
      * Método para obtener una variable por su identificador.
@@ -112,22 +111,22 @@ export class Environment {
      * @returns Symbol | undefined - El símbolo asociado a la variable o undefined si no se encuentra.
      * @throws Error - Si la variable no se encuentra en ningún entorno.
      */
-    GetVariable(id: string): Symbol | null | undefined {
+    public GetVariable(id: string): Symbol | null | undefined {
         console.log(`Buscando la variable ${id} en los entornos...`);
         let entorno: Environment | null = this;
-    
-        // Busca la variable en el entorno actual o en los entornos padres
+
         while (entorno != null) {
             if (entorno.variables.has(id)) {
                 console.log(`Variable ${id} encontrada en el entorno actual.`);
-                return entorno.variables.get(id); // Devuelve la variable si se encuentra
+                return entorno.variables.get(id);
             }
-            console.log(`Variable ${id} no encontrada en este entorno. Buscando en el entorno padre...`);
             entorno = entorno.entornoPadre;
         }
-    
-        console.error(`La variable ${id} no existe en ningún entorno.`);
-        return null; // Retorna null si no se encuentra la variable
+
+        const mensaje = `La variable ${id} no existe en ningún entorno`;
+        console.error(mensaje);
+        Errors.addError("Semántico", mensaje, 0, 0);
+        return null;
     }
     
 
@@ -207,6 +206,22 @@ export class Environment {
         // Recorrer los entornos padres (si los hay)
         if (this.entornoPadre) {
             tablaSimbolos = tablaSimbolos.concat(this.entornoPadre.getSymbols("Padre"));
+        }
+
+        // Recorrer los subentornos
+        for (let i = 0; i < this.subEntornos.length; i++) {
+            tablaSimbolos = tablaSimbolos.concat(this.subEntornos[i].getSymbols(`Subentorno ${i + 1}`));
+        }
+        //Recorrer las funciones
+        for (let [id, funcion] of this.funciones.entries()) {
+            tablaSimbolos.push({
+                ID: id,
+                Tipo: "Función",
+                Entorno: entornoNombre,
+                Valor: "Función",
+                Línea: funcion.linea,
+                Columna: funcion.columna
+            });
         }
 
         return tablaSimbolos;
