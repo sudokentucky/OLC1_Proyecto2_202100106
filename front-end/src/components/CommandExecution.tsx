@@ -56,7 +56,7 @@ function CommandExecution({
     outputMessageType === "error" ? "text-red-600" : outputMessageType === "success" ? "text-nosferatu-900" : "text-black";
 
   return (
-    <div className="flex flex-col min-h-screen h-full w-full bg-aro-100">
+    <div className="flex flex-col min-h-screen h-screen w-full bg-aro-100">
       <div className="flex-grow flex items-center justify-center p-4">
         <div className="w-full max-w-5xl p-8 rounded-lg shadow-lg bg-nosferatu-700">
           <h1 className="text-3xl font-bold mb-6 text-center text-lincoln-50">
@@ -140,6 +140,12 @@ function CommandExecution({
           )}
         </div>
       </div>
+
+      {/* Footer siempre visible */}
+      <footer className="py-4 text-center text-sm text-gray-500 w-full">
+        © {new Date().getFullYear()} Keneth Lopez. 
+        Todos los derechos reservados.
+      </footer>
     </div>
   );
 }
