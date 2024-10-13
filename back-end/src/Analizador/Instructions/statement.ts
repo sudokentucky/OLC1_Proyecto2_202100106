@@ -1,7 +1,9 @@
 import { Environment } from "../Environment/environment"; // Importa la clase Environment para manejar el entorno de ejecución
 import { Instruction } from "../abstract/instruction";    // Importa la clase abstracta Instruction, de la que heredan las instrucciones
-import { Return } from "./return";  // Importa la clase Return para verificar si se devuelve un valor
+import { Return } from "./return";
 import { DotGenerator } from "../Tree/DotGenerator";
+import { Break, Continue } from "./transfer";
+
 /**
  * Clase `Statement` que representa un bloque de instrucciones.
  * 
@@ -39,24 +41,39 @@ export class Statement extends Instruction {
             try {
                 // Ejecuta la instrucción `inst` utilizando el entorno existente `environment`.
                 const result = inst.execute(environment);
-
-                // Si la instrucción es una instancia de `Return`, detenemos la ejecución y devolvemos el valor.
-                if (result instanceof Return) {
-                    console.log("Instrucción de retorno encontrada. Deteniendo la ejecución del bloque.");
-                    console.log("Retornando valor:", result);
+    
+                // Si la instrucción es una instancia de Return, detenemos la ejecución y retornamos el resultado.
+                if (inst instanceof Return) {
                     return result;
                 }
-
-                // Si alguna instrucción devuelve un valor (no null ni undefined), lo retornamos.
-                if (result != null && result != undefined) {
+    
+                // Verificar si la instrucción es Break o Continue
+                if (inst instanceof Break || inst instanceof Continue) {
+                    // Si encontramos un Break o Continue, devolvemos su propia instancia
+                    return inst;
+                }
+    
+                // Si el resultado no es `undefined` y su tipo corresponde a un `Return`, también lo retornamos.
+                if (result !== undefined && result.type === "RETURN") {
                     return result;
                 }
             } catch (error) {
                 // En caso de que ocurra un error durante la ejecución de alguna instrucción, se captura y se imprime el error.
-                console.log(error);
+                console.error("Error ejecutando la instrucción:", error);
             }
         }
+    
+        // Si ninguna instrucción devuelve un resultado, se retorna `undefined`.
+        return undefined;
     }
+    
+
+    /**
+     * Método `generateNode` que genera el nodo para el generador de grafos DOT.
+     * 
+     * @param dotGenerator - Instancia de `DotGenerator` que permite crear nodos y aristas para representar el árbol.
+     * @returns El nombre del nodo creado para este bloque de instrucciones.
+     */
     public generateNode(dotGenerator: DotGenerator): string {
         // Crear el nodo principal para el bloque de instrucciones `Statement`
         const statementNode = dotGenerator.addNode("Statement");
@@ -69,6 +86,4 @@ export class Statement extends Instruction {
     
         return statementNode;
     }
-    
-    
 }
