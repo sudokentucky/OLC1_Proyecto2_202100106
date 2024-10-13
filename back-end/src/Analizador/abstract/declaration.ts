@@ -50,7 +50,9 @@ export class Declaration extends Instruction {
         }
     
         for (const id of this.ids) {
-            const existingVar = environment.GetVariable(id);
+            // Verificar si la variable ya existe en el entorno 
+            const existingVar = environment.getVariableInCurrentEnv(id);
+
     
             if (existingVar !== null) {
                 const errorMsg = `La variable ${id} ya ha sido declarada previamente como constante.`;
@@ -71,28 +73,36 @@ export class Declaration extends Instruction {
     /**
      * Lógica para declarar variables mutables.
      */
-    private declareMutable(environment: Environment) {
-        let expResult: Result | null = this.evaluateExpression(environment);
+/**
+ * Lógica para declarar variables mutables.
+ * Utiliza `getVariableInCurrentEnv` para asegurarse de que la variable no exista en el entorno actual.
+ */
+private declareMutable(environment: Environment) {
+    let expResult: Result | null = this.evaluateExpression(environment);
     
-        for (const id of this.ids) {
-            const existingVar = environment.GetVariable(id);
+    for (const id of this.ids) {
+        // Verificar si la variable ya existe en el entorno actual
+        const existingVar = environment.getVariableInCurrentEnv(id);
     
-            if (existingVar !== null) {
-                Errors.addError(
-                    "Semántico",
-                    `La variable ${id} ya existe en el entorno.`,
-                    this.linea,
-                    this.columna
-                );
-            }
-    
-            // Guardar la variable mutable
-            console.log(`Guardando variable mutable ${id} en el entorno.`);
-            environment.SaveVariable(id, expResult, this.DataType, this.linea, this.columna, false); // Pasamos false para indicar que no es constante
+        if (existingVar !== undefined) {
+            // Si la variable ya existe en el entorno actual, mostramos un error
+            Errors.addError(
+                "Semántico",
+                `La variable ${id} ya existe en el entorno actual.`,
+                this.linea,
+                this.columna
+            );
+            return;
         }
     
-        console.log("Declaración de variable mutable completada.\n");
+        // Guardar la variable mutable
+        console.log(`Guardando variable mutable ${id} en el entorno.`);
+        environment.SaveVariable(id, expResult, this.DataType, this.linea, this.columna, false); // Pasamos false para indicar que no es constante
     }
+    
+    console.log("Declaración de variable mutable completada.\n");
+}
+
     
 
     /**
