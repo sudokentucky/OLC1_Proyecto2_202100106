@@ -1,22 +1,21 @@
 import { Environment } from "../Environment/environment"; // Importamos el entorno
 import { Instruction } from "../abstract/instruction";    // Clase base para las instrucciones
-import { Statement } from "./statement";                 // Bloque de código que ejecutará la función
+import { Statement } from "./statement";                 // Bloque de código que ejecutará la función o método
 import { DataType } from "../expression/types";          // Para manejar tipos y resultados
 import Errors from "../Error/error";
 import { DotGenerator } from "../Tree/DotGenerator";
+
 /**
- * Clase `Function` que representa una función dentro del entorno de ejecución.
+ * Clase `Function` que representa tanto funciones como métodos dentro del entorno de ejecución.
  * 
- * Esta clase define una función que puede ser llamada en cualquier momento. La función contiene un
- * bloque de código (`Statement`) que se ejecutará cuando la función sea invocada. Además, la función
- * puede tener una lista de parámetros que se pasan cuando se invoca.
+ * Los métodos se diferencian de las funciones en que no retornan ningún valor, representado por `void`.
  */
-export class Function extends Instruction {
+export class Funct extends Instruction {
     constructor(
-        public id: string,                   // Identificador de la función
-        public tipoRetorno: DataType,         // Tipo de retorno de la función
-        public statement: Statement,          // Bloque de código (cuerpo de la función)
-        public parametros: {                 // Parámetros de la función con tipos
+        public id: string,                   // Identificador de la función o método
+        public tipoRetorno: DataType,         // Tipo de retorno: si es método, debe ser VOID o NULO
+        public statement: Statement,          // Bloque de código (cuerpo de la función o método)
+        public parametros: {                 // Parámetros de la función o método con tipos
             id: string, 
             tipo: DataType, 
             defaultValue?: any
@@ -28,53 +27,52 @@ export class Function extends Instruction {
     }
 
     /**
-     * Método `execute` que guarda la función en el entorno actual.
+     * Método `execute` que guarda la función o método en el entorno actual.
      * 
-     * Este método añade la función al entorno, lo que permite que sea accesible y ejecutable
-     * en el futuro. La función se guarda asociada a su identificador (`id`), permitiendo su
-     * invocación posterior mediante su nombre.
+     * Este método añade la función o método al entorno, lo que permite que sea accesible y ejecutable
+     * en el futuro. La función o método se guarda asociada a su identificador (`id`).
      * 
-     * @param environment - El entorno de ejecución actual (`Environment`) donde se almacenará la función.
+     * @param environment - El entorno de ejecución actual (`Environment`) donde se almacenará la función o método.
      */
     public execute(environment: Environment) {
-        // Verificar si ya existe una función con el mismo nombre en el entorno
+        // Verificar si ya existe una función o método con el mismo nombre en el entorno
         if (environment.getFuncion(this.id)) {
-            Errors.addError("Semántico", `La función ${this.id} ya está definida`, this.linea, this.columna);
+            Errors.addError("Semántico", `La función o método ${this.id} ya está definido`, this.linea, this.columna);
             return;
         }
-        
-        // Guarda la función en el entorno actual, asociándola a su identificador `id`.
+    
+        // Guardar la función o método en el entorno actual
         environment.guardarFuncion(this.id, this);
-        console.log(`Función ${this.id} guardada correctamente en el entorno.`);
-    }
-
+        console.log(`Función o método ${this.id} guardado correctamente en el entorno.`);
+        }
+    
     /**
      * Método `generateNode` que genera el nodo en formato DOT para Graphviz.
      * 
      * @param ast - Referencia al AST que contiene el contador de nodos.
-     * @returns string - Representación en formato DOT del nodo de la función.
+     * @returns string - Representación en formato DOT del nodo de la función o método.
      */
     public generateNode(dotGenerator: DotGenerator): string {
-        // 1. Crear nodo para la función con su identificador
-        const functionNode = dotGenerator.addNode(`Función: ${this.id}`);
+        // 1. Crear nodo para la función o método con su identificador
+        const nodeType = this.tipoRetorno === DataType.NULO ? "Método" : "Función";
+        const functionNode = dotGenerator.addNode(`${nodeType}: ${this.id}`);
         
-        // 2. Crear nodos para los parámetros de la función
+        // 2. Crear nodos para los parámetros de la función o método
         this.parametros.forEach((param) => {
             // Crear un nodo para cada parámetro con su tipo
             const paramNode = dotGenerator.addNode(`Parámetro: ${param.id} (${param.tipo})`);
             
-            // Conectar el nodo de la función con el nodo del parámetro
+            // Conectar el nodo de la función o método con el nodo del parámetro
             dotGenerator.addEdge(functionNode, paramNode);
         });
     
         // 3. Generar el nodo para el bloque de código (statement)
         const statementNode = this.statement.generateNode(dotGenerator);
         
-        // Conectar el nodo de la función con el bloque de código
+        // Conectar el nodo de la función o método con el bloque de código
         dotGenerator.addEdge(functionNode, statementNode);
     
-        // Retornar el nodo principal de la función
+        // Retornar el nodo principal de la función o método
         return functionNode;
     }
-    
 }
