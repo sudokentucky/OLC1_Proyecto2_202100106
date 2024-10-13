@@ -12,6 +12,12 @@ export enum DataType{
     BOOLEANO,   //2
     CHAR,       //3
     STRING,     //4
-    NULO        //5
+    NULO,       //5
+    RETURN,     //6
+    BREAK,      //7
+    CONTINUE,   //8
+    VOID,      //9
+    ARRAY,      //10
+
 
 }
