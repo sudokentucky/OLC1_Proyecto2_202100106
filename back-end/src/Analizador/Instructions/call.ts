@@ -1,16 +1,19 @@
 import { Environment } from "../Environment/environment";
 import { Result, DataType } from "../expression/types";
 import Errors from "../Error/error";
-import { Function } from "../Instructions/Function"; // Importamos la clase Function para manejar la ejecución
+import { Funct } from "../Instructions/Function";
+import { Declaration } from "../abstract/declaration";
+import { Assignment } from "./assignment";
 import { Expression } from "../abstract/expression";
 import { DotGenerator } from "../Tree/DotGenerator";
+
 /**
  * Clase `Call` que representa la llamada a una función o método dentro del entorno de ejecución.
  */
 export class Call extends Expression {
     constructor(
         public id: string,              // Identificador de la función o método
-        public args: Result[],          // Argumentos que se pasan a la función
+        public args: { id: string, value: any }[],  // Argumentos que se pasan a la función como una lista de {id, value}
         line: number, 
         column: number
     ) {
@@ -24,73 +27,92 @@ export class Call extends Expression {
      * @returns Un resultado (Result) con el valor de retorno, o un `Result` de tipo `NULO` si no hay valor de retorno.
      */
     public execute(environment: Environment): Result {
+        console.log(`[DEBUG] Iniciando llamada a la función: ${this.id}`);
+        
         // Buscar la función en el entorno
-        const funcion: Function | null = environment.getFuncion(this.id);
-
-        if (funcion == null) {
-            Errors.addError("Semántico", `La función ${this.id} no existe`, this.linea, this.columna);
-            // En lugar de retornar `null`, retornamos un `Result` con valor `null` y tipo `NULO`
+        const funcion: Funct | null = environment.getFuncion(this.id);
+        if (!funcion) {
+            Errors.addError(
+                "Semántico",
+                `La función ${  this.id} no está definida.`,
+                this.linea,
+                this.columna
+            );
             return { value: null, DataType: DataType.NULO };
         }
-
-        // Crear un subentorno para la ejecución de la función
-        const subEntorno = new Environment(environment);
-        console.log("Subentorno creado para la función", this.id);
-
-        // Verificar que los argumentos coincidan con los parámetros
-        if (this.args.length > funcion.parametros.length) {
-            Errors.addError("Semántico", `Se pasaron más argumentos de los esperados en la función ${this.id}`, this.linea, this.columna);
-            // Retornar un valor nulo de tipo `NULO` en caso de error
-            return { value: null, DataType: DataType.NULO };
+    
+        // Crear un nuevo entorno para la función con el entorno actual como padre
+        const functionEnvironment = new Environment(environment, `Función ${this.id}`);
+        //se agrega el entorno de la funcion como un subentorno del entorno actual
+        environment.agregarSubEntorno(functionEnvironment);
+    
+        // Verificar que la cantidad de argumentos sea válida, considerando valores por defecto
+        const totalParametros = funcion.parametros.length;
+        const totalParametrosLlamada = this.args.length;
+    
+        if (totalParametrosLlamada > totalParametros) {
+            throw new Error(`La función ${this.id} esperaba ${totalParametros} parámetros, pero se recibieron ${totalParametrosLlamada}.`);
         }
-
-        // Asignar los parámetros al subentorno
-        for (let i = 0; i < funcion.parametros.length; i++) {
-            const param = funcion.parametros[i];
-            const valor = this.args[i] != null ? this.args[i].value : param.defaultValue;
-
-            if (valor === undefined) {
-                Errors.addError("Semántico", `Falta el argumento para el parámetro ${param.id} en la función ${this.id}`, this.linea, this.columna);
-                return { value: null, DataType: DataType.NULO };
+    
+        // Declarar y reasignar parámetros
+        for (let i = 0; i < totalParametros; i++) {
+            const parametro = funcion.parametros[i];
+            const argumento = this.args[i] ? this.args[i].value : parametro.defaultValue;
+    
+            if (argumento === undefined) {
+                throw new Error(`El parámetro ${parametro.id} no tiene un valor asignado en la llamada a la función ${this.id}.`);
             }
-
-            // Guardar el parámetro en el subentorno
-            subEntorno.SaveVariable(param.id, { value: valor, DataType: param.tipo }, param.tipo, this.linea, this.columna, false);
+    
+            // Verificar si la variable ya existe en el entorno local
+            if (functionEnvironment.getVariableInCurrentEnv(parametro.id)) {
+                const assignment = new Assignment(parametro.id, argumento, this.linea, this.columna);
+                assignment.execute(functionEnvironment);
+            } else {
+                const declaration = new Declaration(
+                    parametro.tipo,
+                    [parametro.id],
+                    argumento,
+                    false,
+                    this.linea,
+                    this.columna
+                );
+                declaration.execute(functionEnvironment);
+            }
         }
-
-        // Ejecutar el cuerpo de la función en el subentorno
-        const resultado = funcion.statement.execute(subEntorno);
-
-        // Verificar si el resultado es válido y devolver el valor retornado
-        if (resultado && 'value' in resultado && 'DataType' in resultado) {
-            console.log(`Función ${this.id} ejecutada correctamente. Retornando valor:`, resultado.value, "de tipo", resultado.DataType);
-            return resultado;
-        }
-
-        // Si no hay valor de retorno explícito, retornar un `Result` de tipo `NULO`
-        return { value: null, DataType: DataType.NULO };
+    
+        // Ejecutar el cuerpo de la función
+        const result = funcion.statement.execute(functionEnvironment);
+        return result ? result : { value: null, DataType: DataType.NULO };
     }
 
-    /**
-     * Genera el nodo DOT para la llamada a la función.
-     * 
-     * @param ast - Referencia al AST que contiene el contador de nodos.
-     * @returns string - Representación en formato DOT del nodo de la llamada a la función.
-     */
-    public generateNode(dotGenerator: DotGenerator): string {
-        // Crear el nodo para la llamada a la función con el identificador de la función
-        const functionCallNode = dotGenerator.addNode(`Llamada a Función: ${this.id}`);
+/**
+ * Genera el nodo DOT para la llamada a la función.
+ * 
+ * @param dotGenerator - Referencia al generador de nodos para la visualización.
+ * @returns string - Representación en formato DOT del nodo de la llamada a la función.
+ */
+public generateNode(dotGenerator: DotGenerator): string {
+    // Crear el nodo para la llamada a la función con el identificador de la función
+    const functionCallNode = dotGenerator.addNode(`Llamada a Función: ${this.id}`);
     
-        // Generar nodos para los argumentos y conectarlos al nodo de la función
-        this.args.forEach((arg, index) => {
-            // Crear el nodo para cada argumento
-            const argNode = dotGenerator.addNode(`Arg${index + 1}: ${arg.value}`);
-            
-            // Conectar el nodo de la función con el nodo del argumento
-            dotGenerator.addEdge(functionCallNode, argNode);
-        });
-    
-        return functionCallNode;
-    }
-    
+    // Generar nodos para los argumentos y conectarlos al nodo de la función
+    this.args.forEach((arg) => {
+        // Si el valor del argumento es una expresión (como un número, acceso a variable, etc.), generamos su nodo
+        let argNode: string;
+
+        if (typeof arg.value.generateNode === 'function') {
+            // Si el argumento es una expresión compleja (que puede ser un AST en sí misma)
+            argNode = arg.value.generateNode(dotGenerator);
+        } else {
+            // Si es un valor básico (literal como un número), lo tratamos como un valor básico
+            argNode = dotGenerator.addNode(`Basic: ${arg.value} (${DataType[arg.value.DataType]})`);
+        }
+
+        // Conectar el nodo del argumento al nodo de la función
+        dotGenerator.addEdge(functionCallNode, argNode);
+    });
+
+    return functionCallNode;
+}
+
 }
