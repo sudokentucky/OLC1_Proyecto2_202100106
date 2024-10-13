@@ -20,7 +20,6 @@ function CommandExecution({
   message,
   messageType
 }: CommandExecutionProps) {
-  // Contador de líneas para inputText y outputText
   const { lineCount: inputLineCount } = useLineCounter(inputText);
   const { lineCount: outputLineCount } = useLineCounter(outputText);
 
@@ -44,88 +43,106 @@ function CommandExecution({
     }
   };
 
-  // Establecer el tipo de mensaje de salida según el messageType cuando cambie
+  // Sincronizar la altura de ambos textareas
+  useEffect(() => {
+    if (inputTextareaRef.current && outputTextareaRef.current) {
+      const inputHeight = inputTextareaRef.current.scrollHeight;
+      const outputHeight = outputTextareaRef.current.scrollHeight;
+      const maxHeight = Math.max(inputHeight, outputHeight);
+
+      inputTextareaRef.current.style.height = `${maxHeight}px`;
+      outputTextareaRef.current.style.height = `${maxHeight}px`;
+
+      // Asegurarse de que los contadores de líneas también se sincronicen en altura
+      if (inputLineCounterRef.current && outputLineCounterRef.current) {
+        inputLineCounterRef.current.style.height = `${maxHeight}px`;
+        outputLineCounterRef.current.style.height = `${maxHeight}px`;
+      }
+    }
+  }, [inputText, outputText]);
+
   useEffect(() => {
     if (messageType === "error" || messageType === "success" || messageType === "info") {
-      setOutputMessageType(messageType); // Mantenemos el estado del color basado en el tipo de mensaje
+      setOutputMessageType(messageType);
     }
   }, [messageType]);
 
-  // Clase condicional solo para el color del texto, basado en el estado `outputMessageType`
   const outputTextColorClass =
     outputMessageType === "error" ? "text-red-600" : outputMessageType === "success" ? "text-nosferatu-900" : "text-black";
 
   return (
     <div className="flex flex-col min-h-screen h-screen w-full bg-aro-100">
       <div className="flex-grow flex items-center justify-center p-4">
-        <div className="w-full max-w-5xl p-8 rounded-lg shadow-lg bg-nosferatu-700">
+        <div className="w-full max-w-6xl p-8 rounded-lg shadow-lg bg-nosferatu-700">
           <h1 className="text-3xl font-bold mb-6 text-center text-lincoln-50">
             Ejecución de Comandos
           </h1>
 
-          {/* Input Text Area */}
-          <div className="mb-4 relative">
-            <label className="block text-base font-medium text-lincoln-50 mb-2" htmlFor="input-text">
-              Entrada de comando o archivo de texto
-            </label>
-            <div className="flex">
-              <div
-                ref={inputLineCounterRef}
-                className="line-numbers text-nosferatu bg-buffy-100 p-2 rounded-l-md text-sm text-right overflow-hidden"
-                style={{ height: "auto", minHeight: "200px", maxHeight: "300px" }}
-              >
-                {Array.from({ length: inputLineCount }, (_, i) => i + 1).map((line) => (
-                  <div key={line}>{line}</div>
-                ))}
+          {/* Contenedor para ambas áreas de texto */}
+          <div className="flex space-x-4 mb-4">
+            {/* Input Text Area */}
+            <div className="flex-1 relative">
+              <label className="block text-base font-medium text-lincoln-50 mb-2" htmlFor="input-text">
+                Entrada de comando o archivo de texto
+              </label>
+              <div className="flex">
+                <div
+                  ref={inputLineCounterRef}
+                  className="line-numbers text-nosferatu bg-buffy-100 p-2 rounded-l-md text-sm text-right overflow-hidden"
+                  style={{ height: 'auto', minHeight: '200px' }}
+                >
+                  {Array.from({ length: inputLineCount }, (_, i) => i + 1).map((line) => (
+                    <div key={line}>{line}</div>
+                  ))}
+                </div>
+                <textarea
+                  id="input-text"
+                  ref={inputTextareaRef}
+                  className="w-full p-3 text-nosferatu-800 border rounded-r-md shadow-sm focus:outline-none focus:ring-2 text-sm overflow-y-auto resize-none"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onScroll={syncInputScroll}
+                  placeholder="Ingrese comandos aquí..."
+                  disabled={loading}
+                  style={{
+                    minHeight: '200px',
+                    fontSize: '13px',
+                    whiteSpace: 'pre',
+                  }}
+                />
               </div>
-              <textarea
-                id="input-text"
-                ref={inputTextareaRef}
-                className="w-full min-h-56 p-3 text-nosferatu-800 border rounded-r-md resize-none shadow-sm focus:outline-none focus:ring-2 text-sm overflow-y-auto"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onScroll={syncInputScroll}
-                placeholder="Ingrese comandos aquí..."
-                disabled={loading}
-                style={{
-                  height: "auto",
-                  minHeight: "200px",
-                  fontSize: "13px",
-                  whiteSpace: "pre",
-                }}
-              />
             </div>
-          </div>
 
-          {/* Output Text Area */}
-          <div className="mb-4 relative">
-            <label className="block text-base font-medium text-lincoln-50 mb-2" htmlFor="output-text">
-              Resultado de la ejecución
-            </label>
-            <div className="flex">
-              <div
-                ref={outputLineCounterRef}
-                className="line-numbers text-nosferatu bg-buffy-100 p-2 rounded-l-md text-sm text-right overflow-hidden"
-                style={{ height: "auto", minHeight: "200px", maxHeight: "300px" }}
-              >
-                {Array.from({ length: outputLineCount }, (_, i) => i + 1).map((line) => (
-                  <div key={line}>{line}</div>
-                ))}
+            {/* Output Text Area */}
+            <div className="flex-1 relative">
+              <label className="block text-base font-medium text-lincoln-50 mb-2" htmlFor="output-text">
+                Resultado de la ejecución
+              </label>
+              <div className="flex">
+                <div
+                  ref={outputLineCounterRef}
+                  className="line-numbers text-nosferatu bg-buffy-100 p-2 rounded-l-md text-sm text-right overflow-hidden"
+                  style={{ height: 'auto', minHeight: '200px' }}
+                >
+                  {Array.from({ length: outputLineCount }, (_, i) => i + 1).map((line) => (
+                    <div key={line}>{line}</div>
+                  ))}
+                </div>
+                <textarea
+                  id="output-text"
+                  ref={outputTextareaRef}
+                  className={`w-full p-3 border rounded-r-md shadow-sm focus:outline-none focus:ring-2 text-sm ${outputTextColorClass} resize-none`}
+                  value={outputText}
+                  readOnly
+                  onScroll={syncOutputScroll}
+                  placeholder="Resultado de la ejecución aparecerá aquí..."
+                  style={{
+                    fontFamily: '"Courier New", monospace',
+                    fontSize: '13px',
+                    minHeight: '200px',
+                  }}
+                />
               </div>
-              <textarea
-                id="output-text"
-                ref={outputTextareaRef}
-                className={`w-full min-h-56 p-3 border rounded-r-md resize-none shadow-sm focus:outline-none focus:ring-2 text-sm ${outputTextColorClass}`}
-                value={outputText}
-                readOnly
-                onScroll={syncOutputScroll}
-                placeholder="Resultado de la ejecución aparecerá aquí..."
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: "13px",
-                  minHeight: "200px",
-                }}
-              />
             </div>
           </div>
 
@@ -141,7 +158,6 @@ function CommandExecution({
         </div>
       </div>
 
-      {/* Footer siempre visible */}
       <footer className="py-4 text-center text-sm text-gray-500 w-full">
         © {new Date().getFullYear()} Keneth Lopez. 
         Todos los derechos reservados.
