@@ -21,7 +21,7 @@ export class DoUntil extends Instruction {
     public execute(environment: Environment) {
         console.log("Ejecutando ciclo do-until");
 
-        const doEnv = new Environment(environment); // Crear un nuevo entorno para el ciclo
+        const doEnv = new Environment(environment,'Do-until' ); // Crear un nuevo entorno para el ciclo
         let conditionResult; // Declarar conditionResult fuera del bloque do
 
         do {
