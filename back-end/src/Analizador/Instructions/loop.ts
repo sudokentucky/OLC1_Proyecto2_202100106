@@ -16,7 +16,7 @@ export class Loop extends Instruction {
     public execute(environment: Environment) {
         console.log("Ejecutando ciclo loop (infinito)");
 
-        const loopEnv = new Environment(environment);
+        const loopEnv = new Environment(environment, 'Loop');
 
         while (true) {
             for (let instr of this.instructions) {
