@@ -72,142 +72,85 @@ const Navbar: React.FC<NavbarProps> = ({ onExecuteCommand, onResetCommand, onLoa
   };
 
   return (
-    <nav id="navbar" className="bg-nosferatu text-cullen py-4 shadow-lg">
-      <div className="container mx-auto flex justify-between items-center px-4">
-        {/* Hacemos clic en el nombre para redirigir a la página principal */}
-        <div 
-          className="text-2xl font-bold cursor-pointer"
-          onClick={() => navigate("/")}  // Navegar a la página principal
-        >
-          CompInterpreter
-        </div>
+<nav id="navbar" className="bg-gradient-to-r from-nosferatu-700 via-nosferatu-800 to-nosferatu-700 text-cullen py-4 shadow-lg">
+  <div className="container mx-auto flex justify-between items-center px-4">
+    <div className="text-2xl font-bold cursor-pointer hover:text-buffy transition-colors duration-300" onClick={() => navigate("/")}>
+      CompInterpreter
+    </div>
 
-        <ul className="flex space-x-6">
-          {/* Archivo Dropdown */}
-          <li className="relative">
-            <button
-              onClick={() => {
-                setIsFileOpen(!isFileOpen);
-                setIsToolsOpen(false);
-                setIsReportsOpen(false);
-              }}
-              className="hover:bg-buffy px-4 py-2 rounded-md focus:outline-none"
-            >
-              Archivo
-            </button>
-            {isFileOpen && (
-              <ul className="absolute left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-10">
-                <li>
-                  <button
-                    onClick={() => {
-                      onResetCommand();  // Limpiar el área de entrada
-                      setIsFileOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-dracula"
-                  >
-                    Nuevo archivo
-                  </button>
-                </li>
-                <li>
-                  <label
-                    className="block w-full text-left px-4 py-2 hover:bg-dracula cursor-pointer"
-                  >
-                    Abrir archivo
-                    <input
-                      type="file"
-                      accept=".ci"
-                      onChange={handleOpenFile}
-                      className="hidden"
-                    />
-                  </label>
-                </li>
-                <li>
-                  <button
-                    onClick={handleSaveFile}  // Llama a la función para guardar el archivo
-                    className="block w-full text-left px-4 py-2 hover:bg-dracula"
-                  >
-                    Guardar archivo
-                  </button>
-                </li>
-              </ul>
-            )}
-          </li>
-
-          {/* Herramientas Dropdown */}
-          <li className="relative">
-            <button
-              onClick={() => {
-                setIsToolsOpen(!isToolsOpen);
-                setIsFileOpen(false);
-                setIsReportsOpen(false);
-              }}
-              className="hover:bg-buffy px-4 py-2 rounded-md focus:outline-none"
-            >
-              Herramientas
-            </button>
-            {isToolsOpen && (
-              <ul className="absolute left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-10">
-                <li>
-                  <button
-                    onClick={() => {
-                      onExecuteCommand();  // Ejecutar comandos
-                      setIsToolsOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-dracula"
-                  >
-                    Ejecutar
-                  </button>
-                </li>
-              </ul>
-            )}
-          </li>
-
-{/* Reportes Dropdown */}
-<li className="relative">
-  <button
-    onClick={() => {
-      setIsReportsOpen(!isReportsOpen);
-      setIsFileOpen(false);
-      setIsToolsOpen(false);
-    }}
-    className="hover:bg-buffy px-4 py-2 rounded-md focus:outline-none"
-  >
-    Reportes
-  </button>
-  {isReportsOpen && (
-    <ul className="absolute left-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-10">
-      <li>
+    <ul className="flex space-x-6">
+      <li className="relative">
         <button
-          onClick={handleViewSymbolTable}
-          className="block w-full text-left px-4 py-2  hover:bg-dracula"
+          onClick={() => setIsFileOpen(!isFileOpen)}
+          className="hover:bg-buffy hover:text-nosferatu px-4 py-2 rounded-md focus:outline-none transition-all duration-300"
         >
-          Ver Tabla de símbolos
+          Archivo
         </button>
+        {isFileOpen && (
+          <ul className="absolute left-0 mt-2 w-48 bg-white bg-opacity-80 text-black rounded-md shadow-lg backdrop-blur-sm z-10 transition-all duration-300">
+            <li>
+              <button onClick={onResetCommand} className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md transition-colors duration-300">
+                Nuevo archivo
+              </button>
+            </li>
+            <li>
+              <label className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md cursor-pointer transition-colors duration-300">
+                Abrir archivo
+                <input type="file" accept=".ci" onChange={handleOpenFile} className="hidden" />
+              </label>
+            </li>
+            <li>
+              <button onClick={handleSaveFile} className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md transition-colors duration-300">
+                Guardar archivo
+              </button>
+            </li>
+          </ul>
+        )}
       </li>
-      <li>
-        <button
-          onClick={handleViewErrors}
-          className="block w-full text-left px-4 py-2 hover:bg-dracula"
-        >
-          Ver errores
+
+      <li className="relative">
+        <button onClick={() => setIsToolsOpen(!isToolsOpen)} className="hover:bg-buffy hover:text-nosferatu px-4 py-2 rounded-md focus:outline-none transition-all duration-300">
+          Herramientas
         </button>
+        {isToolsOpen && (
+          <ul className="absolute left-0 mt-2 w-48 bg-white bg-opacity-80 text-black rounded-md shadow-lg backdrop-blur-sm z-10 transition-all duration-300">
+            <li>
+              <button onClick={onExecuteCommand} className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md transition-colors duration-300">
+                Ejecutar
+              </button>
+            </li>
+          </ul>
+        )}
       </li>
-      <li>
-        <button
-          onClick={handleViewAST}
-          className="block w-full text-left px-4 py-2 hover:bg-dracula"
-        >
-          Ver AST
+
+      <li className="relative">
+        <button onClick={() => setIsReportsOpen(!isReportsOpen)} className="hover:bg-buffy hover:text-nosferatu px-4 py-2 rounded-md focus:outline-none transition-all duration-300">
+          Reportes
         </button>
+        {isReportsOpen && (
+          <ul className="absolute left-0 mt-2 w-48 bg-white bg-opacity-80 text-black rounded-md shadow-lg backdrop-blur-sm z-10 transition-all duration-300">
+            <li>
+              <button onClick={handleViewSymbolTable} className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md transition-colors duration-300">
+                Ver Tabla de símbolos
+              </button>
+            </li>
+            <li>
+              <button onClick={handleViewErrors} className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md transition-colors duration-300">
+                Ver errores
+              </button>
+            </li>
+            <li>
+              <button onClick={handleViewAST} className="block w-full text-left px-4 py-2 hover:bg-dracula hover:text-cullen-200 rounded-md transition-colors duration-300">
+                Ver AST
+              </button>
+            </li>
+          </ul>
+        )}
       </li>
     </ul>
-  )}
-</li>
+  </div>
+</nav>
 
-        </ul>
-        
-      </div>
-    </nav>
     
   );
 };
