@@ -13,7 +13,7 @@ export class AST {
     }
 
     interpreter(): string[] {
-        this.globalEnv = new Environment(null); 
+        this.globalEnv = new Environment(null, 'Global'); // Crea un nuevo entorno global
         consola = []; // Limpia la consola
 
         for (const instruction of this.instructions) {
