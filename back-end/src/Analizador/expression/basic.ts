@@ -34,17 +34,21 @@ export class Basic extends Expression {
         // Si el tipo es ENTERO, convierte la cadena a número entero
         if (this.type == DataType.ENTERO) {
             console.log("Valor de la expresión básica: ", this.value);
-            console.log("Tipo de la expresión básica: ", this.type);
+            console.log("Tipo de la expresión básica: ", this.type, "Entero");
             return { value: parseInt(this.value), DataType: this.type };
         }
 
         // Si el tipo es DECIMAL, convierte la cadena a número decimal (float)
         if (this.type == DataType.DECIMAL) {
+            console.log("Valor de la expresión básica: ", this.value);
+            console.log("Tipo de la expresión básica: ", this.type, "Decimal");
             return { value: parseFloat(this.value), DataType: this.type };
         }
 
         // Si el tipo es BOOLEANO, convierte la cadena a un valor booleano
         if (this.type == DataType.BOOLEANO) {
+            console.log("Valor de la expresión básica: ", this.value);
+            console.log("Tipo de la expresión básica: ", this.type, "Booleano");
             // Convierte la cadena "true" o "false" a un valor booleano real
             if (this.value.toLocaleLowerCase() == "true") {
                 return { value: true, DataType: this.type };
@@ -54,11 +58,15 @@ export class Basic extends Expression {
         }
         //Si el tipo es CHAR, convierte la cadena a un valor char
         if (this.type == DataType.CHAR) {
+            console.log("Valor de la expresión básica: ", this.value);
+            console.log("Tipo de la expresión básica: ", this.type, "Char");
             return { value: this.value, DataType: this.type };
         }
 
         // Si el tipo es STRING, simplemente devuelve la cadena como está
         if (this.type == DataType.STRING) {
+            console.log("Valor de la expresión básica: ", this.value);
+            console.log("Tipo de la expresión básica: ", this.type, "String");
             return { value: this.value, DataType: this.type };
         }
 

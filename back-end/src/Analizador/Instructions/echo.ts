@@ -6,7 +6,10 @@ import { DataType } from "../expression/types";
 import { DotGenerator } from "../Tree/DotGenerator";
 
 export class Echo extends Instruction {
-    constructor(private expression: Expression, line: number, column: number) {
+    constructor(
+        private expression: Expression, 
+        line: number, 
+        column: number) {
         super(line, column);
     }
 

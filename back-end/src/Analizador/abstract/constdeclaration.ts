@@ -6,10 +6,10 @@ import Errors from "../Error/error";
 import { DotGenerator } from "../Tree/DotGenerator";
 
 /**
- * Clase que representa la declaración de variables, tanto mutables como inmutables.
+ * Clase que representa la declaración de variables constantes.
  * Permite la declaración de una o varias variables a la vez, con o sin expresión inicial.
  */
-export class Declaration extends Instruction {
+export class ConstantDeclaration extends Instruction {
     constructor(
         private DataType: DataType,  // Tipo de dato de la variable
         private ids: string[],       // Lista de nombres de variables a declarar
@@ -21,19 +21,28 @@ export class Declaration extends Instruction {
     }
 
     /**
-     * Método que ejecuta la declaración de variables.
-     * Llama a la lógica correspondiente según si la variable es constante o mutable.
+     * Método que ejecuta la declaración de variables constantes.
      */
     public execute(environment: Environment) {
-        // Evaluamos la expresión si existe
+        // Si hay una expresión, evaluamos su valor, de lo contrario, usamos un valor por defecto.
         let expResult: Result = this.evaluateExpression(environment);
-    
+
         for (let id of this.ids) {
-            // Guardamos la variable utilizando el método del entorno
-            environment.saveVariable(id, expResult, this.DataType, this.linea, this.columna);
+            // Verificamos si la variable ya existe en el entorno
+            if (environment.getVariableInCurrentEnv(id)) {
+                Errors.addError(
+                    "Semántico",
+                    `La constante '${id}' ya ha sido declarada en este entorno.`,
+                    this.linea,
+                    this.columna
+                );
+                continue;
+            }
+
+            // Guardamos la constante utilizando el método del entorno
+            environment.saveConstVar(id, expResult, this.DataType, this.linea, this.columna);
         }
     }
-    
 
     /**
      * Evalúa la expresión de inicialización si existe, o asigna un valor por defecto según el tipo.
@@ -91,7 +100,7 @@ export class Declaration extends Instruction {
     // Implementación del método generateNode usando DotGenerator
     public generateNode(dotGenerator: DotGenerator): string {
         // Crear el nodo para la declaración
-        const declarationNode = dotGenerator.addNode(`Declaration: ${this.DataType}`);
+        const declarationNode = dotGenerator.addNode(`ConstDeclaration: ${this.DataType}`);
 
         // Crear el nodo para el identificador
         const idNode = dotGenerator.addNode(`ID: ${this.ids}`);

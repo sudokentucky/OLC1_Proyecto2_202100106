@@ -22,7 +22,7 @@ export class MatrixAssignment extends Instruction {
 
     public execute(environment: Environment): Result {
         // Buscar la matriz en el entorno
-        const variable = environment.getVariableInCurrentEnv(this.id);
+        const variable = environment.GetVariable(this.id);
 
         // Validar que la variable sea una instancia de la clase Arreglo (matriz)
         if (!variable || !(variable.getValor() instanceof Arreglo)) {

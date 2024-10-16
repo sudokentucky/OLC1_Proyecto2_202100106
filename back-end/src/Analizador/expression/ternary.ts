@@ -1,17 +1,26 @@
 import { Environment } from "../Environment/environment";
 import { Expression } from "../abstract/expression";
-import { Result, DataType } from "./types";
+import { Result } from "./types";
 import Errors from "../Error/error";
+import { Logical } from "./logical"; // Importamos la clase lógica
+import { Relational } from "./relational"; // Importamos la clase relacional
 import { DotGenerator } from "../Tree/DotGenerator";
+
 export class Ternary extends Expression {
-    constructor(private condition: Expression, private trueExpression: Expression, private falseExpression: Expression, line: number, column: number) {
+    constructor(
+        private condition: Expression, 
+        private trueExpression: Expression, 
+        private falseExpression: Expression, 
+        line: number, 
+        column: number
+    ) {
         super(line, column);
     }
 
     /**
      * Método que ejecuta la expresión ternaria.
-     * Evalúa la condición, si es verdadera devuelve el resultado de la expresión verdadera,
-     * de lo contrario, devuelve el resultado de la expresión falsa.
+     * Evalúa la condición, si es una expresión lógica o relacional, ejecuta y
+     * devuelve el resultado de la expresión verdadera o falsa.
      * 
      * @param entorno - El entorno donde se ejecutan las expresiones (valores de las variables).
      * @returns Result - El resultado de la expresión verdadera o falsa.
@@ -21,24 +30,31 @@ export class Ternary extends Expression {
         // Evalúa la condición
         const conditionValue = this.condition.execute(entorno);
 
-        // Verifica que la condición sea de tipo booleano
-        if (conditionValue.DataType !== DataType.BOOLEANO) {
+        // Verifica si la condición es una instancia de Relational o Logical
+        if (!(this.condition instanceof Relational || this.condition instanceof Logical)) {
             throw new Errors(
                 "Semántico", 
-                `La condición del operador ternario debe ser booleana, pero se encontró ${conditionValue.DataType}`,
+                `La condición del operador ternario debe ser una expresión relacional o lógica`,
                 this.linea, 
                 this.columna
             );
         }
+        console.log(`[DEBUG] Condición de la expresión ternaria: ${conditionValue.value}`);
 
-        // Si la condición es verdadera, se evalúa y devuelve la expresión verdadera
+        // Verificamos si la condición tiene un valor booleano
         if (conditionValue.value === true) {
-            return this.trueExpression.execute(entorno);
+            console.log("la condicion es verdadera");
+            const resultTrue = this.trueExpression.execute(entorno);
+            console.log("[DEBUG] Resultado de la expresión verdadera: ", resultTrue);
+            return { value: resultTrue.value, DataType: resultTrue.DataType };
         } else {
-            // Si la condición es falsa, se evalúa y devuelve la expresión falsa
-            return this.falseExpression.execute(entorno);
+            console.log("la condicion es falsa");
+            const resultFalse = this.falseExpression.execute(entorno);
+            console.log(`[DEBUG] Resultado de la expresión falsa: ${resultFalse}`);
+            return { value: resultFalse.value, DataType: resultFalse.DataType };
         }
     }
+
     public generateNode(dotGenerator: DotGenerator): string {
         // Generar nodos para la condición, la expresión verdadera y la expresión falsa
         const conditionNode = this.condition.generateNode(dotGenerator);
@@ -55,6 +71,4 @@ export class Ternary extends Expression {
     
         return ternaryNode;
     }
-    
-    
 }

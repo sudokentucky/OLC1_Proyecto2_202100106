@@ -14,11 +14,11 @@ export class Funct extends Instruction {
     constructor(
         public id: string,                   // Identificador de la función o método
         public tipoRetorno: DataType,         // Tipo de retorno: si es método, debe ser VOID o NULO
-        public statement: Statement,          // Bloque de código (cuerpo de la función o método)
+        public instructs: Statement,          // Bloque de código (cuerpo de la función o método)
         public parametros: {                 // Parámetros de la función o método con tipos
             id: string, 
             tipo: DataType, 
-            defaultValue?: any
+            value: any
         }[], 
         line: number, 
         column: number
@@ -42,14 +42,32 @@ export class Funct extends Instruction {
         }
     
         // Guardar la función o método en el entorno actual
-        environment.guardarFuncion(this.id, this);
+        environment.guardarFuncion(this.id, this, this.linea, this.columna);
         console.log(`Función o método ${this.id} guardado correctamente en el entorno.`);
-        }
+    }
+
+    /**
+     * Método `getParametros` que devuelve los parámetros de la función o método.
+     * 
+     * @returns {Array} - Lista de parámetros con sus tipos y valores.
+     */
+    public getParametros() {
+        return this.parametros;
+    }
+
+    /**
+     * Método `getInstrucciones` que devuelve el bloque de instrucciones (cuerpo) de la función o método.
+     * 
+     * @returns {Statement} - El bloque de código asociado a la función.
+     */
+    public getInstrucciones(): Statement {
+        return this.instructs;
+    }
     
     /**
      * Método `generateNode` que genera el nodo en formato DOT para Graphviz.
      * 
-     * @param ast - Referencia al AST que contiene el contador de nodos.
+     * @param dotGenerator - Referencia al AST que contiene el contador de nodos.
      * @returns string - Representación en formato DOT del nodo de la función o método.
      */
     public generateNode(dotGenerator: DotGenerator): string {
@@ -67,7 +85,7 @@ export class Funct extends Instruction {
         });
     
         // 3. Generar el nodo para el bloque de código (statement)
-        const statementNode = this.statement.generateNode(dotGenerator);
+        const statementNode = this.instructs.generateNode(dotGenerator);
         
         // Conectar el nodo de la función o método con el bloque de código
         dotGenerator.addEdge(functionNode, statementNode);

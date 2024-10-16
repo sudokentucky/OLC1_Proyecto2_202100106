@@ -17,11 +17,15 @@ export class Assignment extends Instruction {
 
     // Implementación del método execute de Instruction
     public execute(environment: Environment) {
-        // Buscar la variable en el entorno
+        // Buscar la variable en el entorno, si no la encuentra, buscara en los entornos padre
         const variable = environment.GetVariable(this.id);
         
         if (!variable) {
             throw new Errors("Semántico", `La variable ${this.id} no ha sido declarada.`, this.linea, this.columna);
+        }
+
+        if (variable.esConstante()) {
+            throw new Errors("Semántico", `La variable ${this.id} es constante y no puede ser modificada.`, this.linea, this.columna);
         }
 
         // Evaluar la expresión
@@ -33,7 +37,7 @@ export class Assignment extends Instruction {
         }
 
         // Actualizar el valor de la variable en el entorno
-        environment.UpdateVariable(this.id, expResult);
+        environment.saveVariable(this.id, expResult,expResult.DataType, this.linea, this.columna);
         console.log(`Variable ${this.id} actualizada con valor: ${expResult.value}`);
     }
 

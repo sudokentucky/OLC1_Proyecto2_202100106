@@ -8,7 +8,9 @@ import { DotGenerator } from "../Tree/DotGenerator";
 export class Length extends Instruction {
     private expression: Expression;
 
-    constructor(expression: Expression, line: number, column: number) {
+    constructor(expression: Expression, 
+        line: number, 
+        column: number) {
         super(line, column);
         this.expression = expression;
     }

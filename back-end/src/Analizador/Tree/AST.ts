@@ -1,6 +1,7 @@
 import { Environment } from "../Environment/environment"; 
 import { Instruction } from "../abstract/instruction";
 import { DotGenerator } from './DotGenerator'; // Importa tu DotGenerator
+import { Funct } from "../Instructions/Function";
 
 let consola: string[] = [];
 
@@ -13,20 +14,34 @@ export class AST {
     }
 
     interpreter(): string[] {
-        this.globalEnv = new Environment(null, 'Global'); // Crea un nuevo entorno global
-        consola = []; // Limpia la consola
-
+        this.globalEnv = new Environment(null, 'Global'); // Crea el entorno global
+        consola = []; // Reinicia la consola
+    
+        // Fase 1: Registrar todas las funciones (y otras instrucciones necesarias) en el entorno global
         for (const instruction of this.instructions) {
             try {
-                instruction.execute(this.globalEnv); 
+                if (instruction instanceof Funct) { // Si es una definición de función
+                    instruction.execute(this.globalEnv); // Registrar la función
+                }
             } catch (error) {
-                console.error(error); 
+                console.error(`Error al registrar función: ${error}`);
             }
         }
-
-        return consola; 
+    
+        // Fase 2: Ejecutar el resto de las instrucciones
+        for (const instruction of this.instructions) {
+            try {
+                if (!(instruction instanceof Funct)) { // Evitar volver a registrar funciones
+                    instruction.execute(this.globalEnv); // Ejecutar las otras instrucciones
+                }
+            } catch (error) {
+                console.error(error); // Captura y muestra errores
+            }
+        }
+    
+        return consola; // Retorna la consola con los resultados de la ejecución
     }
-
+    
     // Método para generar el código DOT usando DotGenerator
     public generateDot(): string {
         // Reinicia el estado del generador de nodos

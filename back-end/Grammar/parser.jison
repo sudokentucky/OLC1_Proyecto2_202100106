@@ -18,6 +18,7 @@
     //Acceso a variables
     const {Access} = require("../build/Analizador/expression/access");
     const {Declaration} = require("../build/Analizador/abstract/declaration");
+    const {ConstantDeclaration} = require("../build/Analizador/abstract/constdeclaration");
     //Asignación
     const {Assignment} = require("../build/Analizador/Instructions/assignment");
     //Casting
@@ -35,7 +36,7 @@
     const {VectorDeclaration} = require("../build/Analizador/Instructions/vectordeclaration");
     const {MatrixDeclaration} = require("../build/Analizador/Instructions/matrixdeclaration");
     /*Sentencias de control*/
-    const {If, IfElse, IfElseIf} = require("../build/Analizador/Instructions/if");
+    const {ifSentence} = require("../build/Analizador/Instructions/if");
     const {Switch} = require("../build/Analizador/Instructions/switch");
     const {Case} = require("../build/Analizador/Instructions/case");
     const {Default} = require("../build/Analizador/Instructions/default");
@@ -54,6 +55,7 @@
     const {MethodCall} = require("../build/Analizador/Instructions/methodcall");
     /*Ejecutar*/
     const {Execute} = require("../build/Analizador/Instructions/execute");
+    const {Length} = require("../build/Analizador/Instructions/length");
 %}
 //Referencia a el lexer
 %lex 
@@ -73,7 +75,6 @@
 "]"                     { return 'CORCHETE_DER'; }
 ";"                     { return 'PUNTO_Y_COMA'; }
 ","                     { return 'COMA'; }
-"."                     { return 'PUNTO'; }
 ":"                     { return 'DOS_PUNTOS'; }
 
 // Palabras reservadas
@@ -90,10 +91,11 @@
 // Operadores relacionales
 "=="                    { return 'IGUAL'; }
 "!="                    { return 'DIFERENTE'; }
-"<"                     { return 'MENOR_QUE'; }
-">"                     { return 'MAYOR_QUE'; }
 "<="                    { return 'MENOR_IGUAL_QUE'; }
 ">="                    { return 'MAYOR_IGUAL_QUE'; }
+"<"                     { return 'MENOR_QUE'; }
+">"                     { return 'MAYOR_QUE'; }
+"="                     { return 'ASIGNACION'; }
 
 // Tipos de datos
 "true"                  { return 'TRUE'; }
@@ -104,7 +106,6 @@
 "char"                  { return 'CHAR'; }
 "string"                { return 'STRING'; }
 "null"                  { return 'NULL'; }
-"="                     { return 'ASIGNACION'; }
 
 // Incremento y decremento
 "++"                    { return 'INCREMENTO'; }
@@ -132,9 +133,6 @@
 "cast"                  { return 'CAST'; }
 "as"                    { return 'AS'; }
 
-// Vector
-"vector"                { return 'VECTOR'; }
-
 // Sentencias de control
 "if"                    { return 'IF'; }
 "else"                  { return 'ELSE'; }
@@ -148,6 +146,7 @@
 "do"                    { return 'DO'; }
 "until"                 { return 'UNTIL'; }
 "loop"                  { return 'LOOP'; }
+"vector"                { return 'VECTOR'; }
 
 // Sentencias de transferencia
 "break"                 { return 'BREAK'; }
@@ -165,7 +164,7 @@
 "lower"                 { return 'LOWERCASE'; }
 "upper"                 { return 'UPPERCASE'; }
 "round"                 { return 'ROUND'; }
-"length"                { return 'LENGTH'; }
+"len"                   { return 'LEN'; }
 "truncate"              { return 'TRUNCATE'; }
 "toString"              { return 'TOSTRING'; }
 "toCharArray"           { return 'TOCHARARRAY'; }
@@ -205,7 +204,7 @@
 %left 'MULTIPLICACION' 'DIVISION' 'MODULO'  
 %nonassoc 'POTENCIA' 'RAIZ' 
 %right 'UNARIO' 
-%left 'DOS_PUNTOS' 'IF'
+%left 'DOS_PUNTOS' 'IS'
 
 
 // simbolo inicial
@@ -217,8 +216,8 @@
 // Reglas de la gramática
 ini : instrucciones  EOF { return  new AST($1); } //Inicio de la gramática
 ;
-instrucciones : instrucciones instruccion          {  $1.push($2); $$ = $1;}
-              | instruccion                        { $$ = [$1];}
+instrucciones : instrucciones instruccion          {$1.push($2); $$ = $1;}
+              | instruccion                        {$$ = [$1];}
               
 ;
 
@@ -228,7 +227,7 @@ instruccion
                 | declaracion PUNTO_Y_COMA                  {$$ = $1;}
                 | asignacion PUNTO_Y_COMA                   {$$ = $1;}
                 | array PUNTO_Y_COMA                        {$$ = $1;}
-                | update PUNTO Y COMA                       {$$ = $1;}
+                | update PUNTO_Y_COMA                        {$$ = $1;}
                 | if_statement                              {$$ = $1;}
                 | case_statement                            {$$ = $1;}
                 | break PUNTO_Y_COMA                        {$$ = $1;}
@@ -241,6 +240,7 @@ instruccion
                 | declaracion_funcion                       {$$ = $1;}
                 | llamada_metodo                            {$$ = $1;}
                 | Execute PUNTO_Y_COMA                      {$$ = $1;}
+                | len_statement PUNTO_Y_COMA                {$$ = $1;}
                 ;
                 
 
@@ -251,7 +251,6 @@ update
         : expresion INCREMENTO  { $$ = new Increment($1.id, @1.first_line, @1.first_column); }
         //Decremento
         | expresion DECREMENTO  { $$ = new Decrement($1.id, @1.first_line, @1.first_column); }
-        | asignacion            { $$ = $1; }
         ;
 
 expresion 
@@ -273,6 +272,7 @@ expresion
     | CADENA                       { 
         /*Quitar comillas antes*/
         yytext = yytext.substring(1, yytext.length - 1);
+        console.log("Expresion Basica", yytext,"Tipo String");
         $$ = new Basic(yytext, DataType.STRING, @1.first_line, @1.first_column); }
     | CARACTER                    { $$ = new Basic($1, DataType.CHAR, @1.first_line, @1.first_column); }
     | NULL                         { $$ = new Basic($1, DataType.NULL, @1.first_line, @1.first_column); }
@@ -292,16 +292,21 @@ expresion
     | ID PARENTESIS_IZQ PARENTESIS_DER {
         $$ = new Call($1, [], @1.first_line, @1.first_column); // Llamada sin parámetros
     }
+    |len_statement { $$ = $1; }
 ;
 
-
+len_statement
+            : LEN PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Length($3, @1.first_line, @1.first_column);  
+            }
+            ;
 
 relacional  : expresion IGUAL expresion {$$ = new Relational($1,$3,RelationalOption.IGUALDAD,@1.first_line, @1.first_column);}
             | expresion DIFERENTE expresion {$$ = new Relational($1,$3,RelationalOption.DISTINTO,@1.first_line, @1.first_column);}
             | expresion MENOR_QUE expresion {$$ = new Relational($1,$3,RelationalOption.MENOR,@1.first_line, @1.first_column);}
             | expresion MAYOR_QUE expresion {$$ = new Relational($1,$3,RelationalOption.MAYOR,@1.first_line, @1.first_column);}
-            | expresion MENOR_IGUAL_QUE expresion {$$ = new Relational($1,$3,RelationalOption.MAYORIGUAL,@1.first_line, @1.first_column);}
-            | expresion MAYOR_IGUAL_QUE expresion {$$ = new Relational($1,$3,RelationalOption.MENORIGUAL,@1.first_line, @1.first_column);}
+            | expresion MENOR_IGUAL_QUE expresion {$$ = new Relational($1,$3,RelationalOption.MENORIGUAL,@1.first_line, @1.first_column);}
+            | expresion MAYOR_IGUAL_QUE expresion {$$ = new Relational($1,$3,RelationalOption.MAYORIGUAL,@1.first_line, @1.first_column);}
 ;
 
 
@@ -330,17 +335,16 @@ tipo_datos
 ;
 
 declaracion//Declaración de variables
-    : LET id_list DOS_PUNTOS tipo_datos  { //Declaración de variable mutable sin asignación
-        $$ = new Declaration($4, $2, null, false, @1.first_line, @1.first_column); // isConst = false
-    }
-    | LET id_list DOS_PUNTOS tipo_datos ASIGNACION expresion  { //Declaración de variable mutable con asignación
-        $$ = new Declaration($4, $2, $6, false, @1.first_line, @1.first_column); // isConst = false
-    }
-    |CONST id_list DOS_PUNTOS tipo_datos ASIGNACION expresion  { //Declaración de constante con asignación
-        $$ = new Declaration($4, $2, $6, true, @1.first_line, @1.first_column); // isConst = true
-    }
-    
-;
+        : LET id_list DOS_PUNTOS tipo_datos  { //Declaración de variable mutable sin asignación
+            $$ = new Declaration($4, $2, null, @1.first_line, @1.first_column); // isConst = false
+        }
+        | LET id_list DOS_PUNTOS tipo_datos ASIGNACION expresion  { //Declaración de variable mutable con asignación
+            $$ = new Declaration($4, $2, $6, @1.first_line, @1.first_column); // isConst = false
+        }
+        |CONST id_list DOS_PUNTOS tipo_datos ASIGNACION expresion  { //Declaración de constante con asignación
+            $$ = new ConstantDeclaration($4, $2, $6, @1.first_line, @1.first_column); // isConst = true
+        }
+        ;
 
 array 
     /*Vectores en 1 dimension*/
@@ -407,32 +411,14 @@ asignacion
     }
 ;
 
-if_statement // Sentencias de control if
-    // if (expresion) { instrucciones }
-    : IF PARENTESIS_IZQ expresion PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER {
-        $$ = new If($3, $6, @1.first_line, @1.first_column);
-    }
-    //if (expresion) { instrucciones } else { instrucciones }
-    | IF PARENTESIS_IZQ expresion PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER ELSE LLAVE_IZQ instrucciones LLAVE_DER {
-        $$ = new IfElse($3, $6, $10, @1.first_line, @1.first_column);
-    }
-    //if (expresion) { instrucciones } else if (expresion) { instrucciones } else { instrucciones }
-    | IF PARENTESIS_IZQ expresion PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER else_if_blocks ELSE LLAVE_IZQ instrucciones LLAVE_DER {
-        $$ = new IfElseIf($3, $6, $8, $12, @1.first_line, @1.first_column);
-    }
-    ;
-
-else_if_blocks // Bloques de else if
-    // else if (expresion) { instrucciones } else if (expresion) { instrucciones }
-    : else_if_blocks ELSE IF PARENTESIS_IZQ expresion PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER {
-        $$ = $1;
-        $$.push({ condition: $5, instructions: $8 });
-    }
-    // else if (expresion) { instrucciones }
-    | ELSE IF PARENTESIS_IZQ expresion PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER {
-        $$ = [{ condition: $4, instructions: $7 }];
-    }
-    ;
+if_statement    :  IF PARENTESIS_IZQ expresion PARENTESIS_DER statement { 
+                $$ = new ifSentence($3,$5,null, @1.first_line, @1.first_column); }
+                | IF PARENTESIS_IZQ expresion PARENTESIS_DER statement ELSE statement { 
+                $$ = new ifSentence($3,$5,$7, @1.first_line, @1.first_column); }
+                | IF PARENTESIS_IZQ expresion PARENTESIS_DER statement ELSE if_statement { 
+                $$ = new ifSentence($3,$5,$7, @1.first_line, @1.first_column); }
+                ;
+ 
 
 case_statement // Sentencias de control switch
     // switch (expresion) {(list_of_cases) (default)}
@@ -486,7 +472,7 @@ while_statement
 ;
 
 for_statement // Sentencias cíclicas for
-    : FOR PARENTESIS_IZQ instruccion  expresion PUNTO_Y_COMA update PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER {
+    : FOR PARENTESIS_IZQ instruccion expresion PUNTO_Y_COMA update PARENTESIS_DER LLAVE_IZQ instrucciones LLAVE_DER {
         $$ = new For($3, $4, $6, $9, @1.first_line, @1.first_column);
     }
 ;
@@ -514,11 +500,10 @@ statement
 
 declaracion_funcion
     : FUNCTION tipo_datos ID PARENTESIS_IZQ parametros PARENTESIS_DER statement {
-        console.log('parametros', [$5]);
         $$ = new Funct($3, $2, $7, $5, @1.first_line, @1.first_column);
     }
     | FUNCTION tipo_datos ID PARENTESIS_IZQ PARENTESIS_DER statement {
-        $$ = new Funct($3, $2, $5, [], @1.first_line, @1.first_column);
+        $$ = new Funct($3, $2, $6, [], @1.first_line, @1.first_column);
     }
     ;
 

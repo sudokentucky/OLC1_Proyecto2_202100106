@@ -67,7 +67,7 @@ export class MatrixDeclaration extends Instruction {
 
             // Guardar en el entorno
             try {
-                environment.SaveVariable(id, { value: matriz, DataType: this.tipo }, this.tipo, this.linea, this.columna, false);
+                environment.saveVariable(id, { value: matriz, DataType: this.tipo }, this.tipo, this.linea, this.columna);
                 console.log(`[MatrixDeclaration] Matriz '${id}' guardada exitosamente en el entorno.`);
             } catch (error) {
                 console.error(`[MatrixDeclaration] Error al guardar la matriz '${id}' en el entorno:`, error);
@@ -106,7 +106,7 @@ export class MatrixDeclaration extends Instruction {
 
             // Guardar en el entorno
             try {
-                environment.SaveVariable(id, { value: nuevoArreglo, DataType: this.tipo }, this.tipo, this.linea, this.columna, false);
+                environment.saveVariable(id, { value: nuevoArreglo, DataType: this.tipo }, this.tipo, this.linea, this.columna);
                 console.log(`[MatrixDeclaration] Matriz '${id}' guardada exitosamente en el entorno.`);
             } catch (error) {
                 console.error(`[MatrixDeclaration] Error al guardar la matriz '${id}' en el entorno:`, error);

@@ -63,7 +63,7 @@ export class VectorDeclaration extends Instruction {
 
             // Guardar en el entorno
             try {
-                environment.SaveVariable(id, { value: vector, DataType: this.tipo }, this.tipo, this.linea, this.columna, false);
+                environment.saveConstVar(id, { value: vector, DataType: this.tipo }, this.tipo, this.linea, this.columna);
                 console.log(`[VectorDeclaration] Vector '${id}' guardado exitosamente en el entorno.`);
             } catch (error) {
                 console.error(`[VectorDeclaration] Error al guardar el vector '${id}' en el entorno:`, error);
@@ -107,7 +107,7 @@ export class VectorDeclaration extends Instruction {
 
             // Guardar en el entorno
             try {
-                environment.SaveVariable(id, { value: vector, DataType: this.tipo }, this.tipo, this.linea, this.columna, false);
+                environment.saveVariable(id, { value: vector, DataType: this.tipo }, this.tipo, this.linea, this.columna);
                 console.log(`[VectorDeclaration] Vector '${id}' guardado exitosamente en el entorno.`);
             } catch (error) {
                 console.error(`[VectorDeclaration] Error al guardar el vector '${id}' en el entorno:`, error);

@@ -31,6 +31,46 @@ export class Symbol {
         this.isConst = isConst;
     }
 
+        /**
+     * Método estático para crear una variable mutable.
+     * 
+     * @param id - El identificador (nombre) de la variable.
+     * @param valor - El valor de la variable.
+     * @param DataType - El tipo de dato de la variable.
+     * @param linea - La línea de código donde se declara la variable.
+     * @param columna - La columna de código donde se declara la variable.
+     * @returns Una nueva instancia de `Symbol` que representa una variable mutable.
+     */
+        public static crearVariableMutable(
+            id: string, 
+            valor: any, 
+            DataType: DataType, 
+            linea: number, 
+            columna: number
+        ): Symbol {
+            return new Symbol(id, valor, DataType, linea, columna, false); // isConst = false
+        }
+
+        /**
+     * Método estático para crear una variable constante.
+     * 
+     * @param id - El identificador (nombre) de la constante.
+     * @param valor - El valor de la constante.
+     * @param DataType - El tipo de dato de la constante.
+     * @param linea - La línea de código donde se declara la constante.
+     * @param columna - La columna de código donde se declara la constante.
+     * @returns Una nueva instancia de `Symbol` que representa una constante.
+     */
+        public static crearVariableConstante(
+            id: string, 
+            valor: any, 
+            DataType: DataType, 
+            linea: number, 
+            columna: number
+        ): Symbol {
+            return new Symbol(id, valor, DataType, linea, columna, true); // isConst = true
+        }
+
     // Getters
 
     /**

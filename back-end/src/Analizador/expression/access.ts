@@ -33,6 +33,7 @@ export class Access extends Expression {
 
         // Si la variable es encontrada, retorna su valor y tipo de dato
         if (variable) {
+            console.log(`Accediendo a la variable ${this.id} con valor ${variable.getValor()} y tipo ${variable.DataType}`);
             return { value: variable.getValor(), DataType: variable.DataType };
         }else{
 
