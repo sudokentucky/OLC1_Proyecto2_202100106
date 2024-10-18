@@ -123,8 +123,11 @@ export class Symbol {
      * @throws Error - Si el tipo de dato del nuevo valor no coincide con el tipo de dato del símbolo.
      */
     public setValor(v: Result) {
+        if (this.isConst) {
+            Errors.addError("Semántico", `No se puede modificar el valor de la constante ${this.id}`, this.getLinea(), this.getColumna());
+        }
         if (v.DataType != this.DataType) {
-            Errors.addError("Semántico", `El tipo de dato del valor asignado a la variable ${this.id} no coincide con el tipo de dato de la variable`, 0, 0);
+            Errors.addError("Semántico", `El tipo de dato del valor asignado a la variable ${this.id} no coincide con el tipo de dato de la variable`, this.getLinea(), this.getColumna());
         }
         this.valor = v.value;
     }

@@ -75,7 +75,9 @@ export default class Errors {
     public static addError(type: string, description: string, file: number, column: number): void {
         const error = new Errors(type, description, file, column);
         Errors.errors.push(error);
+        console.log("Error añadido:", error);  // <-- Agrega este log para verificar
     }
+    
 
     /**
      * Obtiene la lista de todos los errores almacenados.

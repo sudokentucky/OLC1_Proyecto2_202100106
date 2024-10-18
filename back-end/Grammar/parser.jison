@@ -53,9 +53,22 @@
     const {Statement} = require("../build/Analizador/Instructions/statement");
     const {Call} = require("../build/Analizador/Instructions/call");
     const {MethodCall} = require("../build/Analizador/Instructions/methodcall");
+    /*Nativas*/
+    const {Lower} = require("../build/Analizador/Instructions/lower");
+    const {Upper} = require("../build/Analizador/Instructions/upper");
+    const {Round} = require("../build/Analizador/Instructions/round");
+    const {Length} = require("../build/Analizador/Instructions/length");
+    const {Truncate} = require("../build/Analizador/Instructions/truncate");
+    const {Is} = require("../build/Analizador/Instructions/its");
+    const {ToString} = require("../build/Analizador/Instructions/tostring");
+    const {ToCharArray} = require("../build/Analizador/Instructions/tochararray");
+    const {Reverse} = require("../build/Analizador/Instructions/reverse");
+    const {Max} = require("../build/Analizador/Instructions/max");
+    const {Min} = require("../build/Analizador/Instructions/min");
+    const {Sum} = require("../build/Analizador/Instructions/sum");
+    const {Average} = require("../build/Analizador/Instructions/average");
     /*Ejecutar*/
     const {Execute} = require("../build/Analizador/Instructions/execute");
-    const {Length} = require("../build/Analizador/Instructions/length");
 %}
 //Referencia a el lexer
 %lex 
@@ -240,7 +253,7 @@ instruccion
                 | declaracion_funcion                       {$$ = $1;}
                 | llamada_metodo                            {$$ = $1;}
                 | Execute PUNTO_Y_COMA                      {$$ = $1;}
-                | len_statement PUNTO_Y_COMA                {$$ = $1;}
+                | Native_statement PUNTO_Y_COMA             {$$ = $1;}
                 ;
                 
 
@@ -292,12 +305,46 @@ expresion
     | ID PARENTESIS_IZQ PARENTESIS_DER {
         $$ = new Call($1, [], @1.first_line, @1.first_column); // Llamada sin parámetros
     }
-    |len_statement { $$ = $1; }
+    |expresion IS tipo_datos { $$ = new Is($1, $3, @1.first_line, @1.first_column); }
+    |Native_statement { $$ = $1; }
 ;
 
-len_statement
-            : LEN PARENTESIS_IZQ expresion PARENTESIS_DER{
+Native_statement
+            : LOWER PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Lower($3, @1.first_line, @1.first_column);  
+            }
+            | UPPERCASE PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Upper($3, @1.first_line, @1.first_column);  
+            }
+            | ROUND PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Round($3, @1.first_line, @1.first_column);  
+            }   
+            | LEN PARENTESIS_IZQ expresion PARENTESIS_DER{
                 $$ = new Length($3, @1.first_line, @1.first_column);  
+            }
+            | TRUNCATE PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Truncate($3, @1.first_line, @1.first_column);  
+            }
+            | TOSTRING PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new ToString($3, @1.first_line, @1.first_column);  
+            }
+            | TOCHARARRAY PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new ToCharArray($3, @1.first_line, @1.first_column);  
+            }
+            | REVERSE PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Reverse($3, @1.first_line, @1.first_column);  
+            }
+            | MAX PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Max($3, @1.first_line, @1.first_column);  
+            }
+            | MIN PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Min($3, @1.first_line, @1.first_column);  
+            }
+            | SUM PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Sum($3, @1.first_line, @1.first_column);  
+            }
+            | AVERAGE PARENTESIS_IZQ expresion PARENTESIS_DER{
+                $$ = new Average($3, @1.first_line, @1.first_column);  
             }
             ;
 
@@ -412,11 +459,11 @@ asignacion
 ;
 
 if_statement    :  IF PARENTESIS_IZQ expresion PARENTESIS_DER statement { 
-                $$ = new ifSentence($3,$5,null, @1.first_line, @1.first_column); }
+                $$ = new ifSentence($3,$5,null,null, @1.first_line, @1.first_column); }
                 | IF PARENTESIS_IZQ expresion PARENTESIS_DER statement ELSE statement { 
-                $$ = new ifSentence($3,$5,$7, @1.first_line, @1.first_column); }
+                $$ = new ifSentence($3,$5,$7,null, @1.first_line, @1.first_column); }
                 | IF PARENTESIS_IZQ expresion PARENTESIS_DER statement ELSE if_statement { 
-                $$ = new ifSentence($3,$5,$7, @1.first_line, @1.first_column); }
+                $$ = new ifSentence($3,$5,null,$7, @1.first_line, @1.first_column); }
                 ;
  
 

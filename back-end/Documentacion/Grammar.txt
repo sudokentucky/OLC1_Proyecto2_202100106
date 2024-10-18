@@ -1,0 +1,171 @@
+Gramática en formato BNF
+A continuación se presenta la gramática definida en formato BNF (Backus-Naur Form), 
+la cual describe la sintaxis del lenguaje implementado. Esta gramática incluye la 
+definición de expresiones, declaraciones, estructuras de control, 
+funciones y otras construcciones del lenguaje.
+
+
+<ini> ::= <instrucciones> EOF
+
+<instrucciones> ::= <instruccion>
+                 | <instrucciones> <instruccion>
+
+<instruccion> ::= <print> PUNTO_Y_COMA
+               | <declaracion> PUNTO_Y_COMA
+               | <asignacion> PUNTO_Y_COMA
+               | <array> PUNTO_Y_COMA
+               | <update> PUNTO_Y_COMA
+               | <if_statement>
+               | <case_statement>
+               | <break> PUNTO_Y_COMA
+               | <continue> PUNTO_Y_COMA
+               | <return> PUNTO_Y_COMA
+               | <while_statement>
+               | <for_statement>
+               | <do_until_statement>
+               | <loop_statement>
+               | <declaracion_funcion>
+               | <llamada_metodo>
+               | EJECUTAR ID PARENTESIS_IZQ <parametros_llamada> PARENTESIS_DER PUNTO_Y_COMA
+               | EJECUTAR ID PARENTESIS_IZQ PARENTESIS_DER PUNTO_Y_COMA
+               | <native_statement> PUNTO_Y_COMA
+
+<update> ::= <expresion> INCREMENTO
+           | <expresion> DECREMENTO
+
+<expresion> ::= RESTA <expresion>
+              | <expresion> SUMA <expresion>
+              | <expresion> RESTA <expresion>
+              | <expresion> MULTIPLICACION <expresion>
+              | <expresion> DIVISION <expresion>
+              | <expresion> POTENCIA <expresion>
+              | <expresion> RAIZ <expresion>
+              | <expresion> MODULO <expresion>
+              | <relacional>
+              | <logicos>
+              | <ternario>
+              | ENTERO
+              | DECIMAL
+              | TRUE
+              | FALSE
+              | CADENA
+              | CARACTER
+              | NULL
+              | ID
+              | PARENTESIS_IZQ <expresion> PARENTESIS_DER
+              | CAST PARENTESIS_IZQ <expresion> AS <tipo_datos> PARENTESIS_DER
+              | ID CORCHETE_IZQ <expresion> CORCHETE_DER
+              | ID CORCHETE_IZQ <expresion> CORCHETE_DER CORCHETE_IZQ <expresion> CORCHETE_DER
+              | ID PARENTESIS_IZQ <parametros_llamada> PARENTESIS_DER
+              | ID PARENTESIS_IZQ PARENTESIS_DER
+              | IS PARENTESIS_IZQ <expresion> PARENTESIS_DER <tipo_datos>
+              | <len_statement>
+
+<len_statement> ::= LEN PARENTESIS_IZQ <expresion> PARENTESIS_DER
+
+<native_statement> ::= LOWER PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | UPPER PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | ROUND PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | TRUNCATE PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | TOSTRING PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | TOCHARARRAY PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | REVERSE PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | MAX PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | MIN PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | SUM PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | AVERAGE PARENTESIS_IZQ <expresion> PARENTESIS_DER
+                     | LEN PARENTESIS_IZQ <expresion> PARENTESIS_DER
+
+<relacional> ::= <expresion> IGUAL <expresion>
+               | <expresion> DIFERENTE <expresion>
+               | <expresion> MENOR_QUE <expresion>
+               | <expresion> MAYOR_QUE <expresion>
+               | <expresion> MENOR_IGUAL_QUE <expresion>
+               | <expresion> MAYOR_IGUAL_QUE <expresion>
+
+<ternario> ::= IF PARENTESIS_IZQ <expresion> PARENTESIS_DER <expresion> DOS_PUNTOS <expresion>
+
+<logicos> ::= <expresion> AND <expresion>
+            | <expresion> OR <expresion>
+            | NOT <expresion>
+
+<print> ::= ECHO <expresion>
+
+<tipo_datos> ::= INT
+               | DOUBLE
+               | BOOL
+               | STRING
+               | CHAR
+               | VOID
+
+<declaracion> ::= LET <id_list> DOS_PUNTOS <tipo_datos>
+                | LET <id_list> DOS_PUNTOS <tipo_datos> ASIGNACION <expresion>
+                | CONST <id_list> DOS_PUNTOS <tipo_datos> ASIGNACION <expresion>
+
+<array> ::= LET <id_list> DOS_PUNTOS <tipo_datos> CORCHETE_IZQ CORCHETE_DER ASIGNACION NEW VECTOR <tipo_datos> CORCHETE_IZQ <expresion> CORCHETE_DER
+          | LET <id_list> DOS_PUNTOS <tipo_datos> CORCHETE_IZQ CORCHETE_DER ASIGNACION CORCHETE_IZQ <content> CORCHETE_DER
+          | LET <id_list> DOS_PUNTOS <tipo_datos> CORCHETE_IZQ CORCHETE_DER CORCHETE_IZQ CORCHETE_DER ASIGNACION NEW VECTOR <tipo_datos> CORCHETE_IZQ <expresion> CORCHETE_DER CORCHETE_IZQ <expresion> CORCHETE_DER
+          | LET <id_list> DOS_PUNTOS <tipo_datos> CORCHETE_IZQ CORCHETE_DER CORCHETE_IZQ CORCHETE_DER ASIGNACION CORCHETE_IZQ <content2> CORCHETE_DER
+
+<content> ::= <expresion>
+            | <content> COMA <expresion>
+
+<content2> ::= CORCHETE_IZQ <content> CORCHETE_DER
+             | <content2> COMA CORCHETE_IZQ <content> CORCHETE_DER
+
+<id_list> ::= ID
+            | <id_list> COMA ID
+
+<asignacion> ::= ID ASIGNACION <expresion>
+               | ID CORCHETE_IZQ <expresion> CORCHETE_DER ASIGNACION <expresion>
+               | ID CORCHETE_IZQ <expresion> CORCHETE_DER CORCHETE_IZQ <expresion> CORCHETE_DER ASIGNACION <expresion>
+
+<if_statement> ::= IF PARENTESIS_IZQ <expresion> PARENTESIS_DER <statement>
+                 | IF PARENTESIS_IZQ <expresion> PARENTESIS_DER <statement> ELSE <statement>
+                 | IF PARENTESIS_IZQ <expresion> PARENTESIS_DER <statement> ELSE <if_statement>
+
+<case_statement> ::= SWITCH PARENTESIS_IZQ <expresion> PARENTESIS_DER LLAVE_IZQ <lista_casos> <default> LLAVE_DER
+                   | SWITCH PARENTESIS_IZQ <expresion> PARENTESIS_DER LLAVE_IZQ <lista_casos> LLAVE_DER
+                   | SWITCH PARENTESIS_IZQ <expresion> PARENTESIS_DER LLAVE_IZQ <default> LLAVE_DER
+
+<lista_casos> ::= <caso>
+                | <lista_casos> <caso>
+
+<caso> ::= CASE <expresion> DOS_PUNTOS <instrucciones>
+
+<default> ::= DEFAULT DOS_PUNTOS <instrucciones>
+
+<break> ::= BREAK
+
+<continue> ::= CONTINUE
+
+<return> ::= RETURN <expresion>
+           | RETURN
+
+<while_statement> ::= WHILE PARENTESIS_IZQ <expresion> PARENTESIS_DER <statement>
+
+<for_statement> ::= FOR PARENTESIS_IZQ <instruccion> <expresion> PUNTO_Y_COMA <update> PARENTESIS_DER LLAVE_IZQ <instrucciones> LLAVE_DER
+
+<do_until_statement> ::= DO LLAVE_IZQ <instrucciones> LLAVE_DER UNTIL PARENTESIS_IZQ <expresion> PARENTESIS_DER PUNTO_Y_COMA
+
+<loop_statement> ::= LOOP LLAVE_IZQ <instrucciones> LLAVE_DER
+
+<statement> ::= LLAVE_IZQ <instrucciones> LLAVE_DER
+              | LLAVE_IZQ LLAVE_DER
+
+<declaracion_funcion> ::= FUNCTION <tipo_datos> ID PARENTESIS_IZQ <parametros> PARENTESIS_DER <statement>
+                        | FUNCTION <tipo_datos> ID PARENTESIS_IZQ PARENTESIS_DER <statement>
+
+<parametros> ::= <parametro>
+               | <parametros> COMA <parametro>
+
+<parametro> ::= ID DOS_PUNTOS <tipo_datos> IGUAL <expresion>
+              | ID DOS_PUNTOS <tipo_datos>
+
+<llamada_metodo> ::= ID PARENTESIS_IZQ <parametros_llamada> PARENTESIS_DER PUNTO_Y_COMA
+                   | ID PARENTESIS_IZQ PARENTESIS_DER PUNTO_Y_COMA
+
+<parametros_llamada> ::= <parametro_llamada>
+                       | <parametros_llamada> COMA <parametro_llamada>
+
+<parametro_llamada> ::= ID ASIGNACION <expresion>

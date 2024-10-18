@@ -37,7 +37,7 @@ export class Assignment extends Instruction {
         }
 
         // Actualizar el valor de la variable en el entorno
-        environment.saveVariable(this.id, expResult,expResult.DataType, this.linea, this.columna);
+        variable.setValor(expResult.value);
         console.log(`Variable ${this.id} actualizada con valor: ${expResult.value}`);
     }
 

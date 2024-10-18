@@ -44,7 +44,8 @@ export class Call extends Expression {
             throw new Error(`La función ${this.id} esperaba ${totalParametros} parámetros, pero se recibieron ${totalParametrosLlamada}.`);
         }
         // Crear un nuevo entorno para la función con el entorno actual como padre
-        const functionEnvironment = environment.createSubEnvironment(`Función ${this.id}`);
+        const functionEnvironment = new Environment(environment, `Función ${this.id}`);
+        environment.agregarSubEntorno(functionEnvironment);
 
         // Declarar y reasignar parámetros
         for (let i = 0; i < totalParametros; i++) {

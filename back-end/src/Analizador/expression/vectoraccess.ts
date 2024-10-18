@@ -23,8 +23,7 @@ export class VectorAccess extends Expression {
             throw new Errors("Semántico", `El identificador '${this.id}' no es un vector unidimensional válido`, this.linea, this.columna);
         }
 
-        // Obtener el arreglo unidimensional (asumimos que el Arreglo contiene números)
-        const vector = variable.getValor() as Arreglo<number>;
+        const vector = variable.getValor() as Arreglo<any>;
 
         // Evaluar el índice
         const idx = this.index.execute(environment).value;

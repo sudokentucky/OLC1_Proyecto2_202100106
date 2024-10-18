@@ -35,7 +35,8 @@ export class Execute extends Instruction {
         console.log(`[DEBUG] Método '${this.id}' encontrado`);
 
         // Crear un nuevo entorno para el método con el entorno actual como padre
-        const exceEnv = environment.createSubEnvironment(`Ejecutar ${this.id}`);
+        const exceEnv = new Environment(environment, `Ejecución de método ${this.id}`);
+        environment.agregarSubEntorno(exceEnv);
         console.log(`[DEBUG] Entorno creado para el método '${this.id}'`);
 
         // Ejecutar el cuerpo del método

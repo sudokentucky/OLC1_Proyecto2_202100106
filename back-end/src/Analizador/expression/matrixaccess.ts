@@ -24,7 +24,7 @@ export class MatrixAccess extends Expression {
             throw new Errors("Semántico", `El identificador '${this.id}' no es una matriz`, this.linea, this.columna);
         }
 
-        const arreglo = variable.getValor() as Arreglo<number>; // Especifica el tipo genérico, aquí 'number'
+        const arreglo = variable.getValor() as Arreglo<any>; // Especifica el tipo genérico, aquí 'number'
         const rowIdx = this.row.execute(environment).value;
         const colIdx = this.colExpr.execute(environment).value;
 

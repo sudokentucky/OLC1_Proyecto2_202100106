@@ -55,7 +55,8 @@ export class MethodCall extends Instruction {
         }
 
         // Crear un nuevo entorno para el método con el entorno actual como padre
-        const methodEnvironment = environment.createSubEnvironment(`Metodo ${this.id}`);
+        const methodEnvironment = new Environment(environment, `Método ${this.id}`);
+        environment.agregarSubEntorno(methodEnvironment);
 
 
         // Declarar y asignar parámetros directamente en el nuevo entorno

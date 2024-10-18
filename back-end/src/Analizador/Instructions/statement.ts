@@ -3,6 +3,7 @@ import { Instruction } from "../abstract/instruction";    // Importa la clase ab
 import { Return } from "./return";
 import { DotGenerator } from "../Tree/DotGenerator";
 import { Break, Continue } from "./transfer";
+import { DataType } from "../expression/types";
 
 /**
  * Clase `Statement` que representa un bloque de instrucciones.
@@ -64,7 +65,7 @@ export class Statement extends Instruction {
         }
     
         // Si ninguna instrucción devuelve un resultado, se retorna `undefined`.
-        return undefined;
+        return { valor: null, tipo: DataType.NULO };
     }
     
 

@@ -21,8 +21,8 @@ export class Environment {
      * @param entornoPadre - El entorno padre, o `null` si no tiene uno (entorno global).
      */
     constructor(public previous: Environment | null, name:string) {
-        this.variables = new Map<string, Symbol>(); // Inicializa el mapa de variables vacío
-        this.funciones = new Map<string, Funct>(); // Inicializa el mapa de funciones vacío
+        this.variables = new Map() // Inicializa el mapa de variables vacío
+        this.funciones = new Map() // Inicializa el mapa de funciones vacío
         this.subEntornos = []; // Inicializa la lista de subentornos vacía
         this.name=name;
         console.log(`Entorno creado. Padre: ${previous ? 'Sí' : 'No'}`);
@@ -205,14 +205,8 @@ public getVariableInCurrentEnv(id: string): Symbol | undefined {
     public agregarSubEntorno(entorno: Environment) {
         this.subEntornos.push(entorno);
         console.log(`Subentorno añadido al entorno actual.`);
-        console.log(`Entorno actual: ${this.variables.size} variables, ${this.funciones.size} funciones, ${this.subEntornos.length} subentornos`);    }
+        console.log(`Entorno actual: ${this.variables.size} variables, ${this.funciones.size} funciones, ${this.subEntornos.length} subentornos, Entorno previo: `);    }
     
-    public createSubEnvironment(nombre: string): Environment {
-        const subEnvironment = new Environment(this, nombre);
-        this.agregarSubEntorno(subEnvironment);
-            return subEnvironment;
-        }
-        
 /**
  * Método para obtener todos los símbolos (variables y funciones) del entorno y sus subentornos.
  * Recorre el entorno actual y los subentornos de forma recursiva.

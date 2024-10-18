@@ -2,10 +2,10 @@ import { Environment } from "../Environment/environment";
 import { Instruction } from "../abstract/instruction";
 import { DotGenerator } from './DotGenerator'; // Importa tu DotGenerator
 import { Funct } from "../Instructions/Function";
-
 let consola: string[] = [];
 
 export class AST {
+
     private globalEnv: Environment | null = null; 
     private dotGenerator: DotGenerator; // Instancia de DotGenerator
 

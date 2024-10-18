@@ -1,70 +1,75 @@
 import { Instruction } from "../abstract/instruction"; 
 import { Environment } from "../Environment/environment"; 
-import { Result, DataType } from "../expression/types"; 
+import { DataType } from "../expression/types"; 
 import { Expression } from "../abstract/expression";
-import Errors from "../Error/error"; 
+import { Break, Continue } from "./transfer";
+import Errors from "../Error/error";
+import { Return } from "../Instructions/return";
 import { DotGenerator } from "../Tree/DotGenerator";
-import { Statement } from "./statement";
 
 /**
  * Clase `ifSentence` que representa las sentencias `if`, `else if` y `else`.
  */
 export class ifSentence extends Instruction {
-    private condition: Expression;  // Condición del `if`
-    private ifBlock: Statement;     // Bloque de instrucciones del `if`
-    private elseBlock: Statement | ifSentence | null; // Bloque de `else` o `else if`, puede ser otro `ifSentence` o null
-
-    /**
-     * @param condition - La expresión condicional del `if`.
-     * @param ifBlock - Bloque de instrucciones para el `if`.
-     * @param elseBlock - Bloque `else` o `else if` (puede ser otro `ifSentence`).
-     * @param line - Línea de la sentencia `if` en el código fuente.
-     * @param column - Columna de la sentencia `if` en el código fuente.
-     */
     constructor(
-        condition: Expression, 
-        ifBlock: Statement, 
-        elseBlock: Statement | ifSentence | null,  // Aquí se acepta tanto un `Statement` como un `ifSentence`
+        private condition: Expression,  // Condición del `if`
+        private ifBlock: Instruction,   // Bloque de instrucciones del `if`
+        private elseBlock: Instruction | null = null, // Bloque de `else`, puede ser nulo
+        private elseIfBlock: ifSentence | null = null, // Bloque de `else if`, puede ser nulo
         line: number, 
         column: number
     ) {
         super(line, column);
-        this.condition = condition;
-        this.ifBlock = ifBlock;
-        this.elseBlock = elseBlock; // Puede ser un bloque `else` o un `ifSentence` para manejar `else if`
     }
 
     /**
      * Ejecuta la sentencia `if`, `else if` o `else` en el entorno dado.
      */
-    public execute(environment: Environment): Result {
-        const conditionResult = this.condition.execute(environment); //Usa el mismo entorno para la condición
+    public execute(environment: Environment): any {
+        const nuevoEntorno = new Environment(environment, "IfStatement"); // Crear un nuevo entorno para la sentencia
+        environment.agregarSubEntorno(nuevoEntorno); // Agregar el nuevo entorno al entorno actual
+        const conditionResult = this.condition.execute(environment); // Evaluar la condición
 
         // Verificar que la condición sea booleana
         if (conditionResult.DataType !== DataType.BOOLEANO) {
-            throw new Errors("Semántico", "La condición del 'if' debe ser de tipo booleano", this.linea, this.columna);
+            const error = new Errors("Semántico", `La condición no es booleana: ${conditionResult.value}`, this.linea, this.columna);
+            throw error; // Lanza un error si la condición no es booleana
         }
 
-        // Si la condición del `if` es verdadera, ejecuta el bloque `if`
+        // Si la condición es verdadera, ejecutar el bloque `if`
         if (conditionResult.value) {
-            console.log("Condición verdadera, ejecutando bloque 'if'");
-            return this.ifBlock.execute(environment);
-        } else if (this.elseBlock) {
-            console.log("Bloque else if")
-            // Si hay un bloque `else`, ejecuta ese bloque
-            if (this.elseBlock instanceof ifSentence) {
-                console.log("Condición falsa, ejecutando bloque 'else if'");
-                // Si el `elseBlock` es un `ifSentence`, es un `else if`, lo ejecutamos como tal
-                return this.elseBlock.execute(environment);
-            } else {
-                console.log("Condición falsa, ejecutando bloque 'else'");
-                // Si es un bloque normal, es un `else`, lo ejecutamos
-                return this.elseBlock.execute(environment);
-            }
+            return this.ejecutarBloque(this.ifBlock, nuevoEntorno);
+        } 
+        // Si la condición es falsa y existe un bloque `else`
+        else if (this.elseBlock !== null) {
+            return this.ejecutarBloque(this.elseBlock, nuevoEntorno);
+        } 
+        // Si existe un bloque `else if`, ejecutarlo
+        else if (this.elseIfBlock !== null) {
+            return this.elseIfBlock.execute(nuevoEntorno); // Recursión para el else if
         }
 
-        return { value: null, DataType: DataType.NULO }; // Retorna nulo si ninguna condición fue verdadera
+        return null; // Retorna null si no se ejecuta ningún bloque
     }
+
+    /**
+     * Ejecuta un bloque de instrucciones y maneja las sentencias de control como `Return`, `Break` y `Continue`.
+     * 
+     * @param block - El bloque de instrucciones a ejecutar.
+     * @param environment - El entorno en el que se ejecutan las instrucciones.
+     * @returns El resultado de una instrucción `Return`, `Break` o `Continue` si se encuentra alguna.
+     */
+    private ejecutarBloque(block: Instruction, environment: Environment): any {
+        const result = block.execute(environment);
+
+        // Si se encuentra un `Return`, `Break` o `Continue`, detener la ejecución y devolver el resultado.
+        if (result instanceof Return || result instanceof Break || result instanceof Continue) {
+            return result;
+        }
+
+        return result; // Retornar el resultado si no es `Return`, `Break` o `Continue`
+    }
+
 
     /**
      * Genera el nodo DOT para visualización en Graphviz.

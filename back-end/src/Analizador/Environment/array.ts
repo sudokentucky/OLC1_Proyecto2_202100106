@@ -19,6 +19,25 @@ export class Arreglo<T> {
         return this.tipo;
     }
 
+    public getLength(dimension: 1 | 2 = 1): number {
+        if (this.dimensiones.length === 1) {
+            return this.valores.length;
+        } else if (this.dimensiones.length === 2) {
+            if (dimension === 1) {
+                // Longitud de las filas
+                return this.valores.length;
+            } else if (dimension === 2) {
+                // Longitud de las columnas (asumiendo que todas las filas tienen el mismo número de columnas)
+                return (this.valores[0] as T[]).length;
+            } else {
+                throw new Errors("Semántico", `La dimensión especificada '${dimension}' no es válida para un arreglo bidimensional`, 0, 0);
+            }
+        } else {
+            throw new Errors("Semántico", `El arreglo '${this.id}' tiene un número de dimensiones no soportado para calcular la longitud`, 0, 0);
+        }
+    }
+    
+    
     // Establecer el tipo del arreglo
     public setTipo(tipo: DataType): void {
         this.tipo = tipo;
@@ -107,6 +126,7 @@ export class Arreglo<T> {
 
     
 }
+
 // Función para mapear el resultado de typeof a los valores de DataType
 function tipoJavascriptADataType(valor: any): DataType {
     if (typeof valor === "number") {
@@ -122,3 +142,4 @@ function tipoJavascriptADataType(valor: any): DataType {
     }
     throw new Error(`Tipo de dato no soportado: ${typeof valor}`);
 }
+
