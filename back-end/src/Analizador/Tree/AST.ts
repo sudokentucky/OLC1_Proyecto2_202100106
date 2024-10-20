@@ -1,7 +1,7 @@
 import { Environment } from "../Environment/environment"; 
 import { Instruction } from "../abstract/instruction";
 import { DotGenerator } from './DotGenerator'; // Importa tu DotGenerator
-import { Funct } from "../Instructions/Function";
+import { Execute } from "../Instructions/execute";
 let consola: string[] = [];
 
 export class AST {
@@ -20,7 +20,7 @@ export class AST {
         // Fase 1: Registrar todas las funciones (y otras instrucciones necesarias) en el entorno global
         for (const instruction of this.instructions) {
             try {
-                if (instruction instanceof Funct) { // Si es una definición de función
+                if (!(instruction instanceof Execute)) { // Evitar volver a registrar funciones
                     instruction.execute(this.globalEnv); // Registrar la función
                 }
             } catch (error) {
@@ -31,7 +31,7 @@ export class AST {
         // Fase 2: Ejecutar el resto de las instrucciones
         for (const instruction of this.instructions) {
             try {
-                if (!(instruction instanceof Funct)) { // Evitar volver a registrar funciones
+                if (instruction instanceof Execute) { // Si es una definición de función
                     instruction.execute(this.globalEnv); // Ejecutar las otras instrucciones
                 }
             } catch (error) {
