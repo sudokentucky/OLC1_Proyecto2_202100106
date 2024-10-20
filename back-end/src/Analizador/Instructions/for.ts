@@ -31,7 +31,7 @@ export class For extends Instruction {
 
     public execute(environment: Environment) {
         console.log("Ejecutando ciclo for");
-        const forEnv = new Environment(environment, "FOR"); // Crear un nuevo entorno para el ciclo `for`
+        const forEnv = new Environment(environment, "For"); // Crear un nuevo entorno para el ciclo `for`
 
         this.initialization.execute(environment); // Ejecutar la inicialización
 
