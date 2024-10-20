@@ -37,7 +37,7 @@ export class Assignment extends Instruction {
         }
 
         // Actualizar el valor de la variable en el entorno
-        variable.setValor(expResult.value);
+        variable.setValor(expResult);
         console.log(`Variable ${this.id} actualizada con valor: ${expResult.value}`);
     }
 
