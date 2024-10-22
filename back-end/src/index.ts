@@ -61,9 +61,7 @@ app.post('/interpretar', (req: Request, res: Response) => {
         }
         // Interpretamos el AST y obtenemos los mensajes de la consola y los errores
         const salidaConsola = ast.interpreter();  // Mensajes generados
-        
         const erroresInterpretacion = Errors.getErrors();  // Errores acumulados
-
         console.log(" ======================= FIN DE INTERPRETACION ======================= ");
 
         return res.json({
@@ -84,7 +82,6 @@ app.get('/tablaSimbolos', (_req: Request, res: Response) => {
         if (!currentAST) {
             return res.status(500).json({ mensaje: "No se ha interpretado ningún código." });
         }
-
         // Obtener el entorno global del AST actual
         const globalEnv = currentAST.getGlobalEnvironment();
         if (!globalEnv) {

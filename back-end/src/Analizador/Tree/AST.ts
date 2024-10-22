@@ -52,7 +52,6 @@ export class AST {
                 );
             }
         }
-    
         return consola; // Retorna la consola con los resultados de la ejecución
     }
     
