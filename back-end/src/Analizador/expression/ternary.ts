@@ -29,31 +29,44 @@ export class Ternary extends Expression {
     public execute(entorno: Environment): Result {
         // Evalúa la condición
         const conditionValue = this.condition.execute(entorno);
-
+    
         // Verifica si la condición es una instancia de Relational o Logical
         if (!(this.condition instanceof Relational || this.condition instanceof Logical)) {
-            throw new Errors(
+            Errors.addError(
                 "Semántico", 
                 `La condición del operador ternario debe ser una expresión relacional o lógica`,
                 this.linea, 
                 this.columna
             );
+            throw new Error(`Error Semántico: La condición del operador ternario debe ser una expresión relacional o lógica en la línea ${this.linea}, columna ${this.columna}`);
         }
+    
         console.log(`[DEBUG] Condición de la expresión ternaria: ${conditionValue.value}`);
-
+    
         // Verificamos si la condición tiene un valor booleano
+        if (typeof conditionValue.value !== 'boolean') {
+            Errors.addError(
+                "Semántico", 
+                `La condición del operador ternario debe evaluar a un valor booleano, recibido: ${typeof conditionValue.value}`,
+                this.linea, 
+                this.columna
+            );
+            throw new Error(`Error Semántico: La condición del operador ternario debe evaluar a un valor booleano en la línea ${this.linea}, columna ${this.columna}`);
+        }
+    
         if (conditionValue.value === true) {
-            console.log("la condicion es verdadera");
+            console.log("La condición es verdadera");
             const resultTrue = this.trueExpression.execute(entorno);
             console.log("[DEBUG] Resultado de la expresión verdadera: ", resultTrue);
             return { value: resultTrue.value, DataType: resultTrue.DataType };
         } else {
-            console.log("la condicion es falsa");
+            console.log("La condición es falsa");
             const resultFalse = this.falseExpression.execute(entorno);
             console.log(`[DEBUG] Resultado de la expresión falsa: ${resultFalse}`);
             return { value: resultFalse.value, DataType: resultFalse.DataType };
         }
     }
+    
 
     public generateNode(dotGenerator: DotGenerator): string {
         // Generar nodos para la condición, la expresión verdadera y la expresión falsa

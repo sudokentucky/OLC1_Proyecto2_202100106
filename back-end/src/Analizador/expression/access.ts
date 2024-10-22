@@ -30,17 +30,20 @@ export class Access extends Expression {
     public execute(environment: Environment): Result {
         // Busca la variable en el entorno actual o en los entornos padres
         const variable = environment.GetVariable(this.id);
-
+    
         // Si la variable es encontrada, retorna su valor y tipo de dato
         if (variable) {
             console.log(`Accediendo a la variable ${this.id} con valor ${variable.getValor()} en el entorno ${environment.name}`);
             return { value: variable.getValor(), DataType: variable.DataType };
-        }else{
-
-        // Si la variable no se encuentra, lanza un error
-        throw Errors.addError("Semántico", `La variable ${this.id} no existe en el entorno actual`, this.linea, this.columna);
+        } else {
+            // Si la variable no se encuentra, agrega un error
+            Errors.addError("Semántico", `La variable ${this.id} no existe en el entorno actual`, this.linea, this.columna);
+    
+            // Luego lanza una excepción si deseas detener la ejecución
+            throw new Error(`Error Semántico: La variable ${this.id} no existe en el entorno actual`);
         }
     }
+    
     public generateNode(dotGenerator: DotGenerator): string {
         // Crear un nodo para el acceso a la variable con su identificador
         const accessNode = dotGenerator.addNode(`Access: ${this.id}`);

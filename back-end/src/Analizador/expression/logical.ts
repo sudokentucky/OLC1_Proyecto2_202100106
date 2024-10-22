@@ -25,68 +25,73 @@ export class Logical extends Expression {
     public execute(entorno: Environment): Result {
         // Ejecuta la expresión izquierda
         const leftValue = this.left.execute(entorno);
-
+    
         // Verifica que el tipo de dato de la expresión izquierda sea booleano
         if (leftValue.DataType != DataType.BOOLEANO) {
-            // Si no es booleano, lanza un error semántico
-            throw new Errors(
+            // Si no es booleano, agrega un error semántico y lanza una excepción
+            Errors.addError(
                 "Semántico", 
-                `Tipo de dato no booleano en expresión lógica izquierda (esperado BOOLEANO, recibido ${leftValue.DataType})`, 
+                `Tipo de dato no booleano en expresión lógica izquierda (esperado BOOLEANO, recibido ${DataType[leftValue.DataType]})`, 
                 this.linea, 
                 this.columna
             );
+            throw new Error(`Error Semántico: Tipo de dato no booleano en expresión lógica izquierda en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         // Manejo del operador NOT, que es un operador unario (solo evalúa una expresión)
         if (this.operator == LogicalOption.NOT) {
             return { value: !leftValue.value, DataType: DataType.BOOLEANO };
         }
-
+    
         // Para operadores AND y OR, necesitamos verificar la expresión derecha
         if (this.right === null) {
-            // Error semántico si falta la expresión derecha
-            throw new Errors(
+            // Si falta la expresión derecha, agrega un error semántico y lanza una excepción
+            Errors.addError(
                 "Semántico", 
                 "Operador AND/OR necesita dos operandos", 
                 this.linea, 
                 this.columna
             );
+            throw new Error(`Error Semántico: Operador AND/OR necesita dos operandos en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         // Ejecuta la expresión derecha
         const rightValue = this.right.execute(entorno);
-
+    
         // Verifica que el tipo de dato de la expresión derecha sea booleano
         if (rightValue.DataType != DataType.BOOLEANO) {
-            // Si no es booleano, lanza un error semántico
-            throw new Errors(
+            // Si no es booleano, agrega un error semántico y lanza una excepción
+            Errors.addError(
                 "Semántico", 
-                `Tipo de dato no booleano en expresión lógica derecha (esperado BOOLEANO, recibido ${rightValue.DataType})`, 
+                `Tipo de dato no booleano en expresión lógica derecha (esperado BOOLEANO, recibido ${DataType[rightValue.DataType]})`, 
                 this.linea, 
                 this.columna
             );
+            throw new Error(`Error Semántico: Tipo de dato no booleano en expresión lógica derecha en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         // Manejo de operadores lógicos binarios (AND y OR)
         switch (this.operator) {
             case LogicalOption.AND:
                 // && (AND): ambas expresiones deben ser verdaderas para devolver true
                 return { value: leftValue.value && rightValue.value, DataType: DataType.BOOLEANO };
-
+    
             case LogicalOption.OR:
                 // || (OR): al menos una expresión debe ser verdadera para devolver true
                 return { value: leftValue.value || rightValue.value, DataType: DataType.BOOLEANO };
-
+    
             default:
-                // Si el operador lógico no es reconocido, lanza un error semántico
-                throw new Errors(
+                // Si el operador lógico no es reconocido, agrega un error semántico y lanza una excepción
+                Errors.addError(
                     "Semántico", 
                     `Operador lógico no reconocido: ${this.operator}`, 
                     this.linea, 
                     this.columna
                 );
+                throw new Error(`Error Semántico: Operador lógico no reconocido en la línea ${this.linea}, columna ${this.columna}`);
         }
     }
+    
     public generateNode(dotGenerator: DotGenerator): string {
         // Generar el nodo para el operando izquierdo
         const leftNode = this.left.generateNode(dotGenerator);

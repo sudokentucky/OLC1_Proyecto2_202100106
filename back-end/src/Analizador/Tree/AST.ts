@@ -1,7 +1,9 @@
 import { Environment } from "../Environment/environment"; 
 import { Instruction } from "../abstract/instruction";
-import { DotGenerator } from './DotGenerator'; // Importa tu DotGenerator
+import { DotGenerator } from './DotGenerator'; // Instancia de DotGenerator
 import { Execute } from "../Instructions/execute";
+import Errors from "../Error/error"; 
+
 let consola: string[] = [];
 
 export class AST {
@@ -24,7 +26,13 @@ export class AST {
                     instruction.execute(this.globalEnv); // Registrar la función
                 }
             } catch (error) {
-                console.error(`Error al registrar función: ${error}`);
+                // Registrar el error en la tabla de errores global
+                Errors.addError(
+                    "Semántico",
+                    `Error al registrar la función u operación: ${error}`,
+                    instruction.linea, // Asegúrate de que la instrucción tenga los atributos linea y columna
+                    instruction.columna
+                );
             }
         }
     
@@ -35,7 +43,13 @@ export class AST {
                     instruction.execute(this.globalEnv); // Ejecutar las otras instrucciones
                 }
             } catch (error) {
-                console.error(error); // Captura y muestra errores
+                // Registrar el error en la tabla de errores global
+                Errors.addError(
+                    "Semántico",
+                    `Error durante la ejecución: ${error}`,
+                    instruction.linea, // Asegúrate de que la instrucción tenga los atributos linea y columna
+                    instruction.columna
+                );
             }
         }
     

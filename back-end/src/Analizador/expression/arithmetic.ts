@@ -83,14 +83,14 @@ export class Arithmetic extends Expression {
     public execute(entorno: Environment): Result {
         const leftValue = this.left.execute(entorno); 
         const rightValue = this.right ? this.right.execute(entorno) : null; 
-
+    
         // Depuración: Mostrar los valores antes de realizar la operación
         console.log(`Operación: ${ArithmeticOption[this.operator]}`);
         console.log(`Operando izquierdo: ${leftValue.value} (Tipo: ${DataType[leftValue.DataType]})`);
         if (rightValue) {
             console.log(`Operando derecho: ${rightValue.value} (Tipo: ${DataType[rightValue.DataType]})`);
         }
-
+    
         switch (this.operator) {
             case ArithmeticOption.SUMA:
                 this.ensureRightValue(rightValue, "SUMA");
@@ -104,7 +104,8 @@ export class Arithmetic extends Expression {
             case ArithmeticOption.DIVISION:
                 this.ensureRightValue(rightValue, "DIVISION");
                 if (rightValue!.value == 0) {
-                    throw new Errors("Semántico", `Error: División por cero en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                    Errors.addError("Semántico", `Error: División por cero en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                    throw new Error(`Error Semántico: División por cero en la línea ${this.linea}, columna ${this.columna}`);
                 }
                 return this.performOperation(leftValue, rightValue!, DominanteDivision, "/");
             case ArithmeticOption.POTENCIA:
@@ -113,48 +114,49 @@ export class Arithmetic extends Expression {
             case ArithmeticOption.RAIZ:
                 this.ensureRightValue(rightValue, "RAIZ");
                 if (rightValue!.value <= 0) {
-                    throw new Errors("Semántico", `Índice de raíz debe ser mayor a 0 en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                    Errors.addError("Semántico", `Índice de raíz debe ser mayor a 0 en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                    throw new Error(`Error Semántico: Índice de raíz debe ser mayor a 0 en la línea ${this.linea}, columna ${this.columna}`);
                 }
                 return this.performOperation(leftValue, rightValue!, DominanteRaiz, "√");
             case ArithmeticOption.MODULO:
                 this.ensureRightValue(rightValue, "MODULO");
                 if (rightValue!.value == 0) {
-                    throw new Errors("Semántico", `Error: División por cero en MODULO en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                    Errors.addError("Semántico", `Error: División por cero en MODULO en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                    throw new Error(`Error Semántico: División por cero en MODULO en la línea ${this.linea}, columna ${this.columna}`);
                 }
                 return this.performOperation(leftValue, rightValue!, DominanteModulo, "%");
             case ArithmeticOption.NEG:
                 return this.performOperation(leftValue, null, DominanteNeg, "-");
             default:
-                throw Errors.addError("Sintáctico", `Operador aritmético no reconocido en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                Errors.addError("Sintáctico", `Operador aritmético no reconocido en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                throw new Error(`Error Sintáctico: Operador aritmético no reconocido en la línea ${this.linea}, columna ${this.columna}`);
         }
     }
-
-    // Verificación de que el operando derecho no sea nulo
+    
+    // Método para asegurar que el operando derecho no sea nulo
     private ensureRightValue(rightValue: Result | null, operator: string): void {
         if (!rightValue) {
-            throw Errors.addError("Sintáctico", `Falta el operando derecho para ${operator} en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+            Errors.addError("Sintáctico", `Falta el operando derecho para ${operator} en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+            throw new Error(`Error Sintáctico: Falta el operando derecho para ${operator} en la línea ${this.linea}, columna ${this.columna}`);
         }
     }
-
-    // Realiza la operación aritmética sin usar eval
+    
+    // Método que realiza la operación aritmética
     private performOperation(leftValue: Result, rightValue: Result | null, dominanceMatrix: DataType[][], operator: string): Result {
         const DominateType = dominanceMatrix[leftValue.DataType][rightValue !== null ? rightValue.DataType : 0];
     
-        // Si el tipo dominante es NULO, arroja un error semántico
         if (DominateType === undefined || DominateType === DataType.NULO) {
             const rightDataType = rightValue ? DataType[rightValue.DataType] : 'NULO';
-            throw Errors.addError(
+            Errors.addError(
                 "Semántico", 
                 `Operación '${operator}' no permitida entre ${DataType[leftValue.DataType]} y ${rightDataType} en la línea ${this.linea}, columna ${this.columna}`,
                 this.linea,
                 this.columna
             );
-                    }
+            throw new Error(`Error Semántico: Operación '${operator}' no permitida entre ${DataType[leftValue.DataType]} y ${rightDataType} en la línea ${this.linea}, columna ${this.columna}`);
+        }
     
-        // Continuamos con la operación si es válida
         const result = this.applyOperator(leftValue.value, rightValue ? rightValue.value : 0, operator);
-    
-        // Depuración: Mostrar el resultado de la operación
         console.log(`Resultado de la operación (${leftValue.value} ${operator} ${rightValue?.value}): ${result}`);
     
         switch (DominateType) {
@@ -165,11 +167,11 @@ export class Arithmetic extends Expression {
             case DataType.STRING:
                 return { value: leftValue.value.toString() + (rightValue ? rightValue.value.toString() : ""), DataType: DataType.STRING };
             default:
-                throw Errors.addError("Semántico", `Operación no soportada para el tipo de datos en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                Errors.addError("Semántico", `Operación no soportada para el tipo de datos en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                throw new Error(`Error Semántico: Operación no soportada para el tipo de datos en la línea ${this.linea}, columna ${this.columna}`);
         }
     }
     
-
     // Aplica el operador aritmético sin usar eval
     private applyOperator(left: number, right: number, operator: string): number {
         // Depuración: Mostrar los operandos y el operador
@@ -184,9 +186,11 @@ export class Arithmetic extends Expression {
             case "%": return left % right;
             case "√": return Math.pow(left, 1 / right);  // Raíz
             default:
-                throw Errors.addError("Semántico", `Operador ${operator} no soportado en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                Errors.addError("Semántico", `Operador ${operator} no soportado en la línea ${this.linea}, columna ${this.columna}`, this.linea, this.columna);
+                throw new Error(`Error Semántico: Operador ${operator} no soportado en la línea ${this.linea}, columna ${this.columna}`);
         }
     }
+    
     public generateNode(dotGenerator: DotGenerator): string {
         // Generar el nodo para el operando izquierdo
         const leftNode = this.left.generateNode(dotGenerator);

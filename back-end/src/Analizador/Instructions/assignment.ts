@@ -17,30 +17,48 @@ export class Assignment extends Instruction {
 
     // Implementación del método execute de Instruction
     public execute(environment: Environment) {
-        // Buscar la variable en el entorno, si no la encuentra, buscara en los entornos padre
+        // Buscar la variable en el entorno, si no la encuentra, buscará en los entornos padres
         const variable = environment.GetVariable(this.id);
         
         if (!variable) {
-            throw new Errors("Semántico", `La variable ${this.id} no ha sido declarada.`, this.linea, this.columna);
+            Errors.addError(
+                "Semántico", 
+                `La variable '${this.id}' no ha sido declarada.`, 
+                this.linea, 
+                this.columna
+            );
+            throw new Error(`Error Semántico: La variable '${this.id}' no ha sido declarada en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         if (variable.esConstante()) {
-            throw new Errors("Semántico", `La variable ${this.id} es constante y no puede ser modificada.`, this.linea, this.columna);
+            Errors.addError(
+                "Semántico", 
+                `La variable '${this.id}' es constante y no puede ser modificada.`, 
+                this.linea, 
+                this.columna
+            );
+            throw new Error(`Error Semántico: La variable '${this.id}' es constante y no puede ser modificada en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         // Evaluar la expresión
         const expResult: Result = this.exp.execute(environment);
-
+    
         // Verificar que los tipos coincidan
         if (variable.DataType !== expResult.DataType) {
-            throw new Errors("Semántico", `El tipo de la variable ${this.id} no coincide con el tipo de la expresión.`, this.linea, this.columna);
+            Errors.addError(
+                "Semántico", 
+                `El tipo de la variable '${this.id}' no coincide con el tipo de la expresión. Se esperaba ${variable.DataType} pero se obtuvo ${expResult.DataType}.`, 
+                this.linea, 
+                this.columna
+            );
+            throw new Error(`Error Semántico: El tipo de la variable '${this.id}' no coincide con el tipo de la expresión en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         // Actualizar el valor de la variable en el entorno
         variable.setValor(expResult);
         console.log(`Variable ${this.id} actualizada con valor: ${expResult.value}`);
     }
-
+    
     /**
      * Método `generateNode` que genera el nodo en formato DOT para Graphviz.
      * 

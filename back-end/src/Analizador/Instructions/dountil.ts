@@ -20,29 +20,41 @@ export class DoUntil extends Instruction {
 
     public execute(environment: Environment) {
         console.log("Ejecutando ciclo do-until");
-
-        const doEnv = new Environment(environment,'Do-until' ); // Crear un nuevo entorno para el ciclo
+    
+        const doEnv = new Environment(environment, 'Do-until'); // Crear un nuevo entorno para el ciclo
         let conditionResult; // Declarar conditionResult fuera del bloque do
-
+    
         do {
+            // Ejecutar cada instrucción en el ciclo
             for (let instr of this.instructions) {
                 const result = instr.execute(doEnv);
+    
+                // Manejo de sentencias Break y Continue
                 if (result instanceof Break) {
-                    return;
+                    return; // Termina el ciclo si se encuentra un Break
                 }
                 if (result instanceof Continue) {
-                    break;
+                    break; // Salta a la siguiente iteración si se encuentra un Continue
                 }
             }
-
-            conditionResult = this.condition.execute(doEnv); // Evaluar la condición
+    
+            // Evaluar la condición
+            conditionResult = this.condition.execute(doEnv);
+    
+            // Verificar que el resultado de la condición sea booleana
             if (conditionResult.DataType !== DataType.BOOLEANO) {
-                Errors.addError("Semántico", "La condición del ciclo do-until no es booleana", this.linea, this.columna);
-                break;
+                Errors.addError(
+                    "Semántico", 
+                    "La condición del ciclo do-until no es booleana", 
+                    this.linea, 
+                    this.columna
+                );
+                break; // Salir del ciclo si la condición no es booleana
             }
+    
         } while (!conditionResult.value); // Se ejecuta hasta que la condición sea verdadera
     }
-
+    
     /**
      * Genera el nodo DOT para la estructura `do-until`.
      * 
@@ -67,5 +79,6 @@ export class DoUntil extends Instruction {
     
         return doUntilNode;
     }
+    
     
 }

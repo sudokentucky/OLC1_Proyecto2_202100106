@@ -59,9 +59,9 @@ app.post('/interpretar', (req: Request, res: Response) => {
                 errores: Errors.getErrors() // Retornamos los errores en formato JSON
             });
         }
-
         // Interpretamos el AST y obtenemos los mensajes de la consola y los errores
         const salidaConsola = ast.interpreter();  // Mensajes generados
+        
         const erroresInterpretacion = Errors.getErrors();  // Errores acumulados
 
         console.log(" ======================= FIN DE INTERPRETACION ======================= ");

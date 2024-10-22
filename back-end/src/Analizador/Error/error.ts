@@ -84,6 +84,7 @@ export default class Errors {
      * @returns Un arreglo con todos los errores.
      */
     public static getErrors(): Errors[] {
+        console.log("Obteniendo errores...");  // <-- Agrega este log para verificar
         return Errors.errors;
     }
 
@@ -91,6 +92,7 @@ export default class Errors {
      * Limpia la lista de errores.
      */
     public static clearErrors(): void {
+        console.log("Limpiando errores...");  // <-- Agrega este log para verificar
         Errors.errors = [];
     }
 

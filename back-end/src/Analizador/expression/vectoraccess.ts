@@ -17,35 +17,59 @@ export class VectorAccess extends Expression {
     public execute(environment: Environment): Result {
         // Obtener la variable del entorno
         const variable = environment.GetVariable(this.id);
-
+    
         // Verificar si la variable existe y es de tipo Arreglo
         if (!variable || !(variable.getValor() instanceof Arreglo)) {
-            throw new Errors("Semántico", `El identificador '${this.id}' no es un vector unidimensional válido`, this.linea, this.columna);
+            Errors.addError(
+                "Semántico", 
+                `El identificador '${this.id}' no es un vector unidimensional válido o no existe`, 
+                this.linea, 
+                this.columna
+            );
+            throw new Error(`Error Semántico: El identificador '${this.id}' no es un vector unidimensional válido en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         const vector = variable.getValor() as Arreglo<any>;
-
+    
         // Evaluar el índice
         const idx = this.index.execute(environment).value;
-
+    
         // Verificar que el índice sea un número válido
         if (typeof idx !== 'number') {
-            throw new Errors("Semántico", `El índice ${idx} no es un número válido para el acceso al vector '${this.id}'`, this.linea, this.columna);
+            Errors.addError(
+                "Semántico", 
+                `El índice '${idx}' no es un número válido para el acceso al vector '${this.id}'`, 
+                this.linea, 
+                this.columna
+            );
+            throw new Error(`Error Semántico: El índice '${idx}' no es un número válido para el acceso al vector '${this.id}' en la línea ${this.linea}, columna ${this.columna}`);
         }
-
+    
         // Intentar obtener el valor en la posición indicada del vector
         try {
             const value = vector.getValor(idx);
             return { value, DataType: this.detectDataType(value) };
         } catch (error) {
             if (error instanceof Error) {
-                throw new Errors("Semántico", error.message, this.linea, this.columna);
+                Errors.addError(
+                    "Semántico", 
+                    `Error accediendo al vector '${this.id}': ${error.message}`, 
+                    this.linea, 
+                    this.columna
+                );
+                throw new Error(`Error Semántico: ${error.message} en la línea ${this.linea}, columna ${this.columna}`);
             } else {
-                throw new Errors("Semántico", "Error desconocido accediendo al vector", this.linea, this.columna);
+                Errors.addError(
+                    "Semántico", 
+                    "Error desconocido accediendo al vector", 
+                    this.linea, 
+                    this.columna
+                );
+                throw new Error(`Error Semántico: Error desconocido accediendo al vector en la línea ${this.linea}, columna ${this.columna}`);
             }
         }
     }
-
+    
     /**
      * Detecta el tipo de dato de un valor accedido en el vector.
      */
@@ -56,6 +80,7 @@ export class VectorAccess extends Expression {
         if (value === null) return DataType.NULO;
         return DataType.NULO;
     }
+    
     public generateNode(dotGenerator: DotGenerator): string {
         // Generar el nodo para la expresión del índice
         const indexNode = this.index.generateNode(dotGenerator);
@@ -68,5 +93,6 @@ export class VectorAccess extends Expression {
     
         return vectorAccessNode;
     }
+    
     
 }

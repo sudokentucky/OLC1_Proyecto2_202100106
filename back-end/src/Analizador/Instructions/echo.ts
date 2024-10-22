@@ -4,6 +4,7 @@ import { Expression } from "../abstract/expression";
 import { Instruction } from "../abstract/instruction";
 import { DataType } from "../expression/types";
 import { DotGenerator } from "../Tree/DotGenerator";
+import Errors from "../Error/error";
 
 export class Echo extends Instruction {
     constructor(
@@ -56,13 +57,22 @@ public execute(environment: Environment) {
 
         } else {
             // Si no hay valor, imprimir "null"
-            setConsole("");
+            setConsole("null");
         }
     } catch (error) {
+        // Registrar el error en la lista de errores
+        Errors.addError(
+            "Semántico",
+            `Error al ejecutar la instrucción Echo en la línea ${this.linea}, columna ${this.columna}: ${error}`,
+            this.linea,
+            this.columna
+        );
+
         // Captura cualquier error durante la evaluación de la expresión o la impresión
         setConsole(`Error al ejecutar la instrucción Echo en la línea ${this.linea}, columna ${this.columna}: ${error}`);
     }
 }
+
 
 
     /**
