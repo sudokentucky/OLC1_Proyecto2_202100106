@@ -67,7 +67,7 @@ export class Declaration extends Instruction {
         return expResult;
     }
 
-    /**
+    /**z
      * Obtiene el valor por defecto según el tipo de dato.
      */
     private getDefaultValueForType(): Result {

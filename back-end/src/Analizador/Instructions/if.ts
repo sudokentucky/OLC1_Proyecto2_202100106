@@ -26,8 +26,7 @@ export class ifSentence extends Instruction {
      * Ejecuta la sentencia `if`, `else if` o `else` en el entorno dado.
      */
     public execute(environment: Environment): any {
-        const nuevoEntorno = new Environment(environment, "IfStatement"); // Crear un nuevo entorno para la sentencia
-        environment.agregarSubEntorno(nuevoEntorno); // Agregar el nuevo entorno al entorno actual
+        const ifEnv = new Environment(environment, "IfStatement"); // Crear un nuevo entorno para la sentencia
         const conditionResult = this.condition.execute(environment); // Evaluar la condición
 
         // Verificar que la condición sea booleana
@@ -38,15 +37,15 @@ export class ifSentence extends Instruction {
 
         // Si la condición es verdadera, ejecutar el bloque `if`
         if (conditionResult.value) {
-            return this.ejecutarBloque(this.ifBlock, nuevoEntorno);
+            return this.ejecutarBloque(this.ifBlock, ifEnv);
         } 
         // Si la condición es falsa y existe un bloque `else`
         else if (this.elseBlock !== null) {
-            return this.ejecutarBloque(this.elseBlock, nuevoEntorno);
+            return this.ejecutarBloque(this.elseBlock, ifEnv);
         } 
         // Si existe un bloque `else if`, ejecutarlo
         else if (this.elseIfBlock !== null) {
-            return this.elseIfBlock.execute(nuevoEntorno); // Recursión para el else if
+            return this.elseIfBlock.execute(ifEnv); // Recursión para el else if
         }
 
         return null; // Retorna null si no se ejecuta ningún bloque

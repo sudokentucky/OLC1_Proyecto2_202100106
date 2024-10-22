@@ -247,7 +247,5 @@ public getSymbols(): any[] {
     }
 
     return tablaSimbolos;
-}
-
-    
+}   
 }

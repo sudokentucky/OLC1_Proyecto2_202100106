@@ -1,113 +1,115 @@
 import { Environment } from "../Environment/environment";
+import { Result, DataType } from "../expression/types";
 import Errors from "../Error/error";
 import { Declaration } from "../abstract/declaration";
-import { Instruction } from "../abstract/instruction";
+import { Expression } from "../abstract/expression";
 import { DotGenerator } from "../Tree/DotGenerator";
 
-/**
- * Clase `MethodCall` que representa la llamada a un método dentro del entorno de ejecución.
- * Extiende `Instruction` ya que un método es considerado una instrucción (no produce un valor).
- */
-export class MethodCall extends Instruction {
+export class MethodCall extends Expression {
     constructor(
-        public id: string,              // Identificador del método
-        public args: { id: string, value: any }[],  // Argumentos que se pasan al método como una lista de {id, value}
+        public id: string,              
+        public args: { id: string, value: any }[],  // Argumentos que se pasan a la función o método como una lista de {id, value}
         line: number, 
         column: number
     ) {
-        super(line, column); // Llamada al constructor de la clase base Instruction
+        super(line, column); 
     }
 
-    /**
-     * Ejecuta la llamada al método dentro de un entorno.
-     * 
-     * @param environment - El entorno donde se buscará y ejecutará el método.
-     */
-    public execute(environment: Environment): void {
-        console.log(`[DEBUG] Iniciando llamada al método: ${this.id}`);
-        console.log(`[DEBUG] Argumentos de la llamada:`, this.args);
+    public execute(environment: Environment): Result {
+        console.log(`[DEBUG] Iniciando llamada a la subrutina: ${this.id}`);
         
-        // Buscar el método en el entorno local o en los entornos padres
-        let metodo = environment.getFuncion(this.id);
-            if (!metodo) {
-                Errors.addError(
-                    "Semántico",
-                    `El método ${this.id} no está definido ni en el entorno local ni en el global.`,
-                    this.linea,
-                    this.columna
-                );
-                return;
-            }
-        // Obtener los parámetros del método utilizando el método getParametros()
-        const parametros = metodo.getParametros();
+        // Buscar la función o método en el entorno
+        let subroutine = environment.getFuncion(this.id);
+        if (!subroutine) {
+            Errors.addError(
+                "Semántico",
+                `La subrutina ${this.id} no está definida ni en el entorno local ni en el global.`,
+                this.linea,
+                this.columna
+            );
+            return { value: null, DataType: DataType.NULO };
+        }
+
+        // Obtener los parámetros de la subrutina
+        const parametros = subroutine.getParametros();
         const totalParametros = parametros.length;
         const totalParametrosLlamada = this.args.length;
 
-        // Verificar que la cantidad de argumentos sea válida, considerando valores por defecto
+        // Verificar que la cantidad de argumentos no exceda el número de parámetros
         if (totalParametrosLlamada > totalParametros) {
             Errors.addError(
                 "Semántico",
-                `El método ${this.id} esperaba ${totalParametros} parámetros, pero se recibieron ${totalParametrosLlamada}.`,
+                `La subrutina ${this.id} esperaba ${totalParametros} parámetros, pero se recibieron ${totalParametrosLlamada}.`,
                 this.linea,
                 this.columna
             );
-            return;
+            return { value: null, DataType: DataType.NULO };
         }
 
-        // Crear un nuevo entorno para el método con el entorno actual como padre
-        const methodEnvironment = new Environment(environment, `Método ${this.id}`);
-        environment.agregarSubEntorno(methodEnvironment);
+        // Crear un nuevo entorno para la función o método con el entorno actual como padre
+        const subroutineEnvironment = new Environment(environment, `Subrutina ${this.id}`);
+        environment.agregarSubEntorno(subroutineEnvironment);
 
+        // Asignar los parámetros en el nuevo entorno sin importar el orden
+        for (let parametro of parametros) {
+            // Buscar el argumento correspondiente por su id
+            const argumento = this.args.find(arg => arg.id === parametro.id)?.value;
 
-        // Declarar y asignar parámetros directamente en el nuevo entorno
-        for (let i = 0; i < totalParametros; i++) {
-            const parametro = parametros[i];
-            const argumento = this.args.find(arg => arg.id === parametro.id)?.value ?? parametro.value;
+            // Si no se pasó el argumento, usar el valor por defecto
+            const argumentoEvaluado = argumento !== undefined ? argumento : parametro.value;
 
-            if (argumento === undefined) {
+            // Si el parámetro no tiene valor asignado (ni argumento ni valor por defecto), lanzar un error
+            if (argumentoEvaluado === undefined) {
                 Errors.addError(
                     "Semántico",
-                    `El parámetro ${parametro.id} no tiene un valor asignado en la llamada al método ${this.id}.`,
+                    `El parámetro ${parametro.id} no tiene un valor asignado en la llamada a la subrutina ${this.id}.`,
                     this.linea,
                     this.columna
                 );
-                return;
+                return { value: null, DataType: DataType.NULO };
             }
 
-            // Declaramos el parámetro en el nuevo entorno
+            // Evaluar el argumento si es una expresión
+            const valorEvaluado = argumentoEvaluado.evaluate
+                ? argumentoEvaluado.evaluate(subroutineEnvironment)
+                : argumentoEvaluado;
+
+            // Declarar el parámetro en el nuevo entorno
             const declaration = new Declaration(
                 parametro.tipo,
                 [parametro.id], // Lista de identificadores (en este caso, un solo parámetro)
-                argumento,
+                valorEvaluado,
                 this.linea,
                 this.columna
             );
-            declaration.execute(methodEnvironment); // Ejecutamos la declaración en el nuevo entorno
+            declaration.execute(subroutineEnvironment); // Ejecutamos la declaración en el nuevo entorno
         }
 
-        // Obtener el bloque de instrucciones del método utilizando el método getInstrucciones()
-        const instrucciones = metodo.getInstrucciones();
+        // Obtener y ejecutar el bloque de instrucciones de la subrutina
+        const instrucciones = subroutine.getInstrucciones();
+        const result = instrucciones.execute(subroutineEnvironment);
 
-        // Ejecutar el cuerpo del método en el nuevo entorno
-        instrucciones.execute(methodEnvironment);
+        // Verificar si la subrutina es una función o un método
+        if (subroutine.tipoRetorno === DataType.VOID) {
+            // Es un método (void), no se retorna ningún valor
+            return { value: null, DataType: DataType.NULO };
+        } else {
+            // Es una función, debe retornar un valor
+            return result ? result : { value: null, DataType: DataType.NULO };
+        }
     }
 
-    /**
-     * Genera el nodo DOT para la llamada al método.
-     * 
-     * @param dotGenerator - Referencia al generador de nodos para la visualización.
-     * @returns string - Representación en formato DOT del nodo de la llamada al método.
-     */
     public generateNode(dotGenerator: DotGenerator): string {
-        // Crear el nodo para la llamada al método con el identificador del método
-        const methodCallNode = dotGenerator.addNode(`Llamada a Método: ${this.id}`);
-    
-        // Generar nodos para los argumentos y conectarlos al nodo del método
-        this.args.forEach((arg, index) => {
-            const argNode = dotGenerator.addNode(`Arg${index + 1}: ${arg.value}`);
-            dotGenerator.addEdge(methodCallNode, argNode);
+        const subroutineCallNode = dotGenerator.addNode(`Llamada a Subrutina: ${this.id}`);
+        this.args.forEach((arg) => {
+            let argNode: string;
+            if (typeof arg.value.generateNode === 'function') {
+                argNode = arg.value.generateNode(dotGenerator);
+            } else {
+                argNode = dotGenerator.addNode(`Basic: ${arg.value} (${DataType[arg.value.DataType]})`);
+            }
+            dotGenerator.addEdge(subroutineCallNode, argNode);
         });
-    
-        return methodCallNode;
+        return subroutineCallNode;
     }
 }

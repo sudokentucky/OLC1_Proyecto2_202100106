@@ -1,0 +1,16 @@
+let arreglo2: int[] = [0, 0, 1, 2, 0, 0, 5, 1, 0, 0, 8, 0, 0];
+    let temporal, suma, ceros: int = 0;
+    for (let i: int = 0; i < len(arreglo2); i++) {
+        temporal = arreglo2[i];
+        if (temporal == 0) {
+            ceros++;
+echo ceros;
+            continue;
+        }
+        suma = suma + temporal;
+
+        continue;
+        echo "Esto no debe de imprimirse nunca";
+    }
+    echo "La suma de los elementos de arreglo2 es: " + suma;
+    echo "La cantidad de ceros en el arreglo es: " + ceros;

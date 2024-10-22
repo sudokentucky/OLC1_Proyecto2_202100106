@@ -8,7 +8,7 @@ import { DotGenerator } from "../Tree/DotGenerator";
 export class Call extends Expression {
     constructor(
         public id: string,              
-        public args: { id: string, value: any }[],  
+        public args: { id: string, value: any }[],  // Argumentos que se pasan a la función como una lista de {id, value}
         line: number, 
         column: number
     ) {
@@ -18,61 +18,78 @@ export class Call extends Expression {
     public execute(environment: Environment): Result {
         console.log(`[DEBUG] Iniciando llamada a la función: ${this.id}`);
         
-        // Intentar buscar la función en el entorno local o en los padres
+        // Buscar la función en el entorno
         let funcion = environment.getFuncion(this.id);
-        
-        // Si no se encuentra la función, intentamos buscarla en el entorno global
         if (!funcion) {
-                Errors.addError(
-                    "Semántico",
-                    `La función ${this.id} no está definida ni en el entorno local ni en el global.`,
-                    this.linea,
-                    this.columna
-                );
-                return { value: null, DataType: DataType.NULO };
-        
+            Errors.addError(
+                "Semántico",
+                `La función ${this.id} no está definida ni en el entorno local ni en el global.`,
+                this.linea,
+                this.columna
+            );
+            return { value: null, DataType: DataType.NULO };
         }
 
-
-        // Obtener los parámetros de la función usando el método getParametros
+        // Obtener los parámetros de la función
         const parametros = funcion.getParametros();
         const totalParametros = parametros.length;
         const totalParametrosLlamada = this.args.length;
 
-        // Verificar que la cantidad de argumentos sea válida
+        // Verificar que la cantidad de argumentos no exceda el número de parámetros
         if (totalParametrosLlamada > totalParametros) {
-            throw new Error(`La función ${this.id} esperaba ${totalParametros} parámetros, pero se recibieron ${totalParametrosLlamada}.`);
+            Errors.addError(
+                "Semántico",
+                `La función ${this.id} esperaba ${totalParametros} parámetros, pero se recibieron ${totalParametrosLlamada}.`,
+                this.linea,
+                this.columna
+            );
+            return { value: null, DataType: DataType.NULO };
         }
+
         // Crear un nuevo entorno para la función con el entorno actual como padre
         const functionEnvironment = new Environment(environment, `Función ${this.id}`);
         environment.agregarSubEntorno(functionEnvironment);
 
-        // Declarar y reasignar parámetros
-        for (let i = 0; i < totalParametros; i++) {
-            const parametro = parametros[i];
-            const argumento = this.args[i] ? this.args[i].value : parametro.value;
+        // Asignar los parámetros en el nuevo entorno sin importar el orden
+        for (let parametro of parametros) {
+            // Buscar el argumento correspondiente por su id
+            const argumento = this.args.find(arg => arg.id === parametro.id)?.value;
 
-            if (argumento === undefined) {
-                throw new Error(`El parámetro ${parametro.id} no tiene un valor asignado en la llamada a la función ${this.id}.`);
-            }
+            // Si no se pasó el argumento, usar el valor por defecto
+            const argumentoEvaluado = argumento !== undefined ? argumento : parametro.value;
 
-                //Si el argumento es una expresión, se debe evaluar
-                const declaration = new Declaration(
-                    parametro.tipo,
-                    [parametro.id],
-                    argumento,
+            // Si el parámetro no tiene valor asignado (ni argumento ni valor por defecto), lanzar un error
+            if (argumentoEvaluado === undefined) {
+                Errors.addError(
+                    "Semántico",
+                    `El parámetro ${parametro.id} no tiene un valor asignado en la llamada a la función ${this.id}.`,
                     this.linea,
                     this.columna
                 );
-                declaration.execute(functionEnvironment);
-            
+                return { value: null, DataType: DataType.NULO };
+            }
+
+            // Evaluar el argumento si es una expresión
+            const valorEvaluado = argumentoEvaluado.evaluate
+                ? argumentoEvaluado.evaluate(functionEnvironment)
+                : argumentoEvaluado;
+
+            // Declarar el parámetro en el nuevo entorno
+            const declaration = new Declaration(
+                parametro.tipo,
+                [parametro.id], // Lista de identificadores (en este caso, un solo parámetro)
+                valorEvaluado,
+                this.linea,
+                this.columna
+            );
+            declaration.execute(functionEnvironment); // Ejecutamos la declaración en el nuevo entorno
         }
 
-        // Obtener el bloque de código de la función usando getInstrucciones
+        // Obtener y ejecutar el bloque de instrucciones de la función
         const instrucciones = funcion.getInstrucciones();
-
-        // Ejecutar el cuerpo de la función
         const result = instrucciones.execute(functionEnvironment);
+
+        // Devolver el resultado de la ejecución de la función (o un valor nulo si no hay retorno explícito)
         return result ? result : { value: null, DataType: DataType.NULO };
     }
 

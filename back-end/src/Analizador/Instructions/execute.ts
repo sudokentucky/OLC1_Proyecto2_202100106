@@ -25,8 +25,9 @@ export class Execute extends Instruction {
     public execute(environment: Environment) {
         console.log(`[DEBUG] Intentando ejecutar el método '${this.id}'`);
 
-        // Buscar el método en el entorno
-        const metodo= environment.getFuncion(this.id);
+        // Buscar el método en el entorno global
+        const globalEnv = environment.getGlobal();
+        const metodo= globalEnv.getFuncion(this.id);
         if (!metodo) {
             Errors.addError("Semántico", `El método ${this.id} no está definido.`, this.linea, this.columna);
             console.log(`[ERROR] Método '${this.id}' no encontrado en el entorno`);
@@ -37,10 +38,6 @@ export class Execute extends Instruction {
         // Crear un nuevo entorno para el método con el entorno actual como padre
         const exceEnv = new Environment(environment, `Ejecución de método ${this.id}`);
         environment.agregarSubEntorno(exceEnv);
-        console.log(`[DEBUG] Entorno creado para el método '${this.id}'`);
-
-        // Ejecutar el cuerpo del método
-        console.log(`[DEBUG] Ejecutando el cuerpo del método '${this.id}'`);
         metodo.instructs.execute(exceEnv);
     }
 

@@ -2,7 +2,6 @@ import { Environment } from "../Environment/environment"; // Importamos el entor
 import { Instruction } from "../abstract/instruction";    // Clase base para las instrucciones
 import { Statement } from "./statement";                 // Bloque de código que ejecutará la función o método
 import { DataType } from "../expression/types";          // Para manejar tipos y resultados
-import Errors from "../Error/error";
 import { DotGenerator } from "../Tree/DotGenerator";
 
 /**
@@ -35,14 +34,9 @@ export class Funct extends Instruction {
      * @param environment - El entorno de ejecución actual (`Environment`) donde se almacenará la función o método.
      */
     public execute(environment: Environment) {
-        // Verificar si ya existe una función o método con el mismo nombre en el entorno
-        if (environment.getFuncion(this.id)) {
-            Errors.addError("Semántico", `La función o método ${this.id} ya está definido`, this.linea, this.columna);
-            return;
-        }
-    
-        // Guardar la función o método en el entorno actual
-        environment.guardarFuncion(this.id, this, this.linea, this.columna);
+        const globalEnv = environment.getGlobal();
+        // Guardar la función o método en el entorno global
+        globalEnv.guardarFuncion(this.id, this, this.linea, this.columna);
         console.log(`Función o método ${this.id} guardado correctamente en el entorno.`);
     }
 
